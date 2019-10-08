@@ -118,11 +118,15 @@ class Dynamixel():
 
     # Set servo move speed
     def set_joint_speed(self, id, speed):
+        # print("DataType of speed: ",type(speed))
         dxl_comm_result, dxl_error = self.packetHandler.write2ByteTxRx(self.portHandler, id, self.ADDR_AX12A_MOVE_SPEED,
-                                                                       speed)
+                                                                       int(speed))
+        # print("Set Speed ",id,'---',dxl_comm_result,'---',dxl_error)
         if dxl_comm_result != COMM_SUCCESS:
+            print("fail")
             return self.set_joint_speed(id, speed)
         elif dxl_error != 0:
+            print("fail")
             return self.set_joint_speed(id, speed)
         else:
             print("Dynamixel#%d speed has been set: %s" % (id, speed))
@@ -132,6 +136,7 @@ class Dynamixel():
         # Enable Dynamixel#1 Torque
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, self.ADDR_MX_TORQUE_ENABLE,
                                                                        self.TORQUE_ENABLE)
+        # print('Enable Torque ',id,'---',dxl_comm_result,'---',dxl_error)
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
@@ -160,102 +165,217 @@ class Dynamixel():
     def print_status(self, id, goal_position, present_position):
         print("[ID: {} GoalPos: {}  PresPos: {} ]".format(id, goal_position, present_position))
 
+def test():
+    '''
+    Currently this function is uesless. Can just ignore it
+    '''
+    # Allocate goal position value into byte array
+    # param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(GoalPosition_6))]
+    # param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(GoalPosition_1))]
+    # param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(GoalPosition_2))]
+    # param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(GoalPosition_3))]
 
+    param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
+    param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_1)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_1)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_1))]
+    param_goal_position_2 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
+    param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+
+    # Send goal to syncwrite storage
+    servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
+    servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
+    servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
+    servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
+
+    # Syncwrite goal position
+    dxl_comm_result = servo.groupSyncWrite.txPacket()
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
+
+    # Clear syncwrite parameter storage
+    servo.groupSyncWrite.clearParam()
+
+    # if dxl_comm_result != COMM_SUCCESS:
+    #     print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    # elif dxl_error != 0:
+    #     print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    while 1:
+        # Read present position
+        dxl_present_position_6, dxl_comm_result_6, dxl_error_6 = servo.read_pos(servo.DXL_ID_6)
+        dxl_present_position_1, dxl_comm_result_1, dxl_error_1 = servo.read_pos(servo.DXL_ID_1)
+        dxl_present_position_2, dxl_comm_result_2, dxl_error_2 = servo.read_pos(servo.DXL_ID_2)
+        dxl_present_position_3, dxl_comm_result_3, dxl_error_3 = servo.read_pos(servo.DXL_ID_3)
+
+        dxl_present_position_6_deg = dxl_present_position_6 / 1023 * 300
+        dxl_present_position_1_deg = dxl_present_position_1 / 1023 * 300
+        dxl_present_position_2_deg = dxl_present_position_2 / 1023 * 300
+        dxl_present_position_3_deg = dxl_present_position_3 / 1023 * 300
+
+        # Print Statues
+        servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
+        servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+        servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
+        servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
+
+        if not (abs(GoalPosition_6 - dxl_present_position_6) or abs(GoalPosition_1 - dxl_present_position_1) or
+                abs(GoalPosition_2 - dxl_present_position_2) or abs(
+                    GoalPosition_3 - dxl_present_position_3)) > servo.DXL_MOVING_STATUS_THRESHOLD:
+            break
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dynamixel Servo Control')
-    parser.add_argument('--user_input', type=int, default=1, help='set true to as goal deg from user')
+    parser.add_argument('--user_input', action='store_false', help='ignore this argument in order to ask goal from program')
     args = parser.parse_args()
 
     servo = Dynamixel(args)
-    if args.user_input:
+    if args.user_input == True:
         print("True")
     else:
-        print("False")
+        print("False")  
 
+    # Enable Dynamixel Torque
+    servo.enable_servo_torque(servo.DXL_ID_6)
+    servo.enable_servo_torque(servo.DXL_ID_1)
+    servo.enable_servo_torque(servo.DXL_ID_2)
+    servo.enable_servo_torque(servo.DXL_ID_3)
+
+    # Read Pos of Servo
+    dxl6_present_position, _, _ = servo.read_pos(servo.DXL_ID_6)
+    dxl1_present_position, _, _ = servo.read_pos(servo.DXL_ID_1)
+    dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
+    dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
+
+    # Set Speed of Servo
+    joint_speed = 1
+    servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
+    servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
+    servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
+    servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
+        
+    x= 20
     while 1:
-        # Enable Dynamixel Torque
-        servo.enable_servo_torque(servo.DXL_ID_6)
-        servo.enable_servo_torque(servo.DXL_ID_1)
-        servo.enable_servo_torque(servo.DXL_ID_2)
-        servo.enable_servo_torque(servo.DXL_ID_3)
-
-        # Read Pos of Servo
-        dxl6_present_position, _, _ = servo.read_pos(servo.DXL_ID_6)
-        dxl1_present_position, _, _ = servo.read_pos(servo.DXL_ID_1)
-        dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
-        dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
-
-        # Set Speed of Servo
-        joint_speed = 1
-        servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
-        servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
-        servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
-        servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
-
         if args.user_input:
             # User input goal position
             GoalPosition_6_deg, GoalPosition_6 = user_input(6)
             GoalPosition_1_deg, GoalPosition_1 = user_input(1)
             GoalPosition_2_deg, GoalPosition_2 = user_input(2)
             GoalPosition_3_deg, GoalPosition_3 = user_input(3)
+            
+            # Allocate goal position value into byte array
+            param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
+                GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
+            param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(
+                GoalPosition_1)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_1)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_1))]
+            param_goal_position_2 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(
+                GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
+            param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
+                GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+
+            # Send goal to syncwrite storage
+            servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
+            servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
+            servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
+            servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
+
+            # Syncwrite goal position
+            dxl_comm_result = servo.groupSyncWrite.txPacket()
+            if dxl_comm_result != COMM_SUCCESS:
+                print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
+
+            # Clear syncwrite parameter storage
+            servo.groupSyncWrite.clearParam()
+
+            # if dxl_comm_result != COMM_SUCCESS:
+            #     print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+            # elif dxl_error != 0:
+            #     print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+            while 1:
+                # Read present position
+                dxl_present_position_6, dxl_comm_result_6, dxl_error_6 = servo.read_pos(servo.DXL_ID_6)
+                dxl_present_position_1, dxl_comm_result_1, dxl_error_1 = servo.read_pos(servo.DXL_ID_1)
+                dxl_present_position_2, dxl_comm_result_2, dxl_error_2 = servo.read_pos(servo.DXL_ID_2)
+                dxl_present_position_3, dxl_comm_result_3, dxl_error_3 = servo.read_pos(servo.DXL_ID_3)
+
+                dxl_present_position_6_deg = dxl_present_position_6 / 1023 * 300
+                dxl_present_position_1_deg = dxl_present_position_1 / 1023 * 300
+                dxl_present_position_2_deg = dxl_present_position_2 / 1023 * 300
+                dxl_present_position_3_deg = dxl_present_position_3 / 1023 * 300
+
+                # Print Statues
+                servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
+                servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+                servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
+                servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
+
+                if not (abs(GoalPosition_6 - dxl_present_position_6) or abs(GoalPosition_1 - dxl_present_position_1) or
+                        abs(GoalPosition_2 - dxl_present_position_2) or abs(
+                            GoalPosition_3 - dxl_present_position_3)) > servo.DXL_MOVING_STATUS_THRESHOLD:
+                    break
         else:
-            arr = [150, 150, 150, 150]
-            GoalPosition_6_deg, GoalPosition_6 = program_input(arr[0])
-            GoalPosition_1_deg, GoalPosition_1 = program_input(arr[1])
-            GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
-            GoalPosition_3_deg, GoalPosition_3 = program_input(arr[3])
+            for i in range(0,x,2):
+                arr = [150, 150, 150, 150]
+                GoalPosition_6_deg, GoalPosition_6 = program_input(arr[0]+i)
+                GoalPosition_1_deg, GoalPosition_1 = program_input(arr[1]+i)
+                GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2]+i)
+                GoalPosition_3_deg, GoalPosition_3 = program_input(arr[3]+i)
 
-        # Allocate goal position value into byte array
-        param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
-            GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
-        param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(
-            GoalPosition_1)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_1)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_1))]
-        param_goal_position_2 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(
-            GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
-        param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
-            GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+                # Allocate goal position value into byte array
+                param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
+                    GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
+                param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(
+                    GoalPosition_1)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_1)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_1))]
+                param_goal_position_2 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(
+                    GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
+                param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
+                    GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
 
-        # Send goal to syncwrite storage
-        servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
-        servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
-        servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
-        servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
+                # Send goal to syncwrite storage
+                servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
+                servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
+                servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
+                servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
 
-        # Syncwrite goal position
-        dxl_comm_result = servo.groupSyncWrite.txPacket()
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
+                # Syncwrite goal position
+                dxl_comm_result = servo.groupSyncWrite.txPacket()
+                if dxl_comm_result != COMM_SUCCESS:
+                    print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
 
-        # Clear syncwrite parameter storage
-        servo.groupSyncWrite.clearParam()
+                # Clear syncwrite parameter storage
+                servo.groupSyncWrite.clearParam()
 
-        # if dxl_comm_result != COMM_SUCCESS:
-        #     print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
-        # elif dxl_error != 0:
-        #     print("%s" % packetHandler.getRxPacketError(dxl_error))
+                # if dxl_comm_result != COMM_SUCCESS:
+                #     print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+                # elif dxl_error != 0:
+                #     print("%s" % packetHandler.getRxPacketError(dxl_error))
 
-        while 1:
-            # Read present position
-            dxl_present_position_6, dxl_comm_result_6, dxl_error_6 = servo.read_pos(servo.DXL_ID_6)
-            dxl_present_position_1, dxl_comm_result_1, dxl_error_1 = servo.read_pos(servo.DXL_ID_1)
-            dxl_present_position_2, dxl_comm_result_2, dxl_error_2 = servo.read_pos(servo.DXL_ID_2)
-            dxl_present_position_3, dxl_comm_result_3, dxl_error_3 = servo.read_pos(servo.DXL_ID_3)
+                while 1:
+                    # Read present position
+                    dxl_present_position_6, dxl_comm_result_6, dxl_error_6 = servo.read_pos(servo.DXL_ID_6)
+                    dxl_present_position_1, dxl_comm_result_1, dxl_error_1 = servo.read_pos(servo.DXL_ID_1)
+                    dxl_present_position_2, dxl_comm_result_2, dxl_error_2 = servo.read_pos(servo.DXL_ID_2)
+                    dxl_present_position_3, dxl_comm_result_3, dxl_error_3 = servo.read_pos(servo.DXL_ID_3)
 
-            dxl_present_position_6_deg = dxl_present_position_6 / 1023 * 300
-            dxl_present_position_1_deg = dxl_present_position_1 / 1023 * 300
-            dxl_present_position_2_deg = dxl_present_position_2 / 1023 * 300
-            dxl_present_position_3_deg = dxl_present_position_3 / 1023 * 300
+                    dxl_present_position_6_deg = dxl_present_position_6 / 1023 * 300
+                    dxl_present_position_1_deg = dxl_present_position_1 / 1023 * 300
+                    dxl_present_position_2_deg = dxl_present_position_2 / 1023 * 300
+                    dxl_present_position_3_deg = dxl_present_position_3 / 1023 * 300
 
-            # Print Statues
-            servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
-            servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
-            servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
-            servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
+                    # Print Statues
+                    servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
+                    servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+                    servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
+                    servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
 
-            if not (abs(GoalPosition_6 - dxl_present_position_6) or abs(GoalPosition_1 - dxl_present_position_1) or
-                    abs(GoalPosition_2 - dxl_present_position_2) or abs(
-                        GoalPosition_3 - dxl_present_position_3)) > servo.DXL_MOVING_STATUS_THRESHOLD:
-                break
+                    if not (abs(GoalPosition_6 - dxl_present_position_6) or abs(GoalPosition_1 - dxl_present_position_1) or
+                            abs(GoalPosition_2 - dxl_present_position_2) or abs(
+                                GoalPosition_3 - dxl_present_position_3)) > servo.DXL_MOVING_STATUS_THRESHOLD:
+                        break
+                if i == x-2:
+                    exit(0)
 
     # Disable Dynamixel Torque
     servo.disable_servo_torque(servo.DXL_ID_6)
