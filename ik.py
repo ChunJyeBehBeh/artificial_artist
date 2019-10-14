@@ -18,13 +18,15 @@ def x_end(theta):
     theta: List[4]= theta[0], theta[1], theta[2], theta[3]  List of theta angles
     length: List[4] = length0, length1, length2, length3, length3 List of joint length'''
 
-    x = length[2] * sin(r(theta[2])) * (sin(r(theta[0])) - cos(r(theta[0])) * sin(r(theta[1]))) + length[1] * cos(r(theta[0])) * cos(
-        r(theta[1])) + length[3] * cos(r(theta[3])) * (
-                    sin(r(theta[2])) * (sin(r(theta[0])) - cos(r(theta[0])) * sin(r(theta[1]))) + cos(r(theta[0])) * cos(r(theta[1])) * cos(
-                r(theta[2]))) + length[3] * sin(r(theta[3])) * (
-                    cos(r(theta[2])) * (sin(r(theta[0])) - cos(r(theta[0])) * sin(r(theta[1]))) - cos(r(theta[0])) * cos(r(theta[1])) * sin(
-                r(theta[2]))) + length[2] * cos(r(theta[0])) * cos(r(theta[1])) * cos(r(theta[2]))
-                    
+    x = length[1] * cos(r(theta[0])) * cos(r(theta[1])) - length[3] * sin(r(theta[3])) * (
+            cos(r(theta[0])) * cos(r(theta[1])) * sin(r(theta[2])) + cos(r(theta[0])) * cos(r(theta[2])) * sin(
+        r(theta[1]))) - length[3] * cos(
+        r(theta[3])) * (
+                    cos(r(theta[0])) * sin(r(theta[1])) * sin(r(theta[2])) - cos(r(theta[0])) * cos(r(theta[1])) * cos(
+                r(theta[2]))) + length[2] * cos(
+        r(theta[0])) * cos(r(theta[1])) * cos(r(theta[2])) - length[2] * cos(r(theta[0])) * sin(r(theta[1])) * sin(
+        r(theta[2]))
+
     return x
 
 
@@ -33,12 +35,14 @@ def y_end(theta):
     -------------------------------------------------
     theta: List[4]= theta[0], theta[1], theta[2], theta[3]  List of theta angles
     length: List[4] = length1, length2, length3, length4 List of joint length'''
-    y = length[1] * cos(r(theta[1])) * sin(r(theta[0])) - length[2] * sin(r(theta[2])) * (
-            cos(r(theta[0])) + sin(r(theta[0])) * sin(r(theta[1]))) - length[3] * cos(r(theta[3])) * (
-                sin(r(theta[2])) * (cos(r(theta[0])) + sin(r(theta[0])) * sin(r(theta[1]))) - cos(r(theta[1])) * cos(r(theta[2])) * sin(
-            r(theta[0]))) - length[3] * sin(r(theta[3])) * (
-                cos(r(theta[2])) * (cos(r(theta[0])) + sin(r(theta[0])) * sin(r(theta[1]))) + cos(r(theta[1])) * sin(r(theta[0])) * sin(
-            r(theta[2]))) + length[2] * cos(r(theta[1])) * cos(r(theta[2])) * sin(r(theta[0]))
+    y = length[1] * cos(r(theta[1])) * sin(r(theta[0])) - length[3] * sin(r(theta[3])) * (
+            cos(r(theta[1])) * sin(r(theta[0])) * sin(r(theta[2])) + cos(r(theta[2])) * sin(r(theta[0])) * sin(
+        r(theta[1]))) - length[3] * cos(
+        r(theta[3])) * (
+                    sin(r(theta[0])) * sin(r(theta[1])) * sin(r(theta[2])) - cos(r(theta[1])) * cos(r(theta[2])) * sin(
+                r(theta[0]))) + length[2] * cos(
+        r(theta[1])) * cos(r(theta[2])) * sin(r(theta[0])) - length[2] * sin(r(theta[0])) * sin(r(theta[1])) * sin(
+        r(theta[2]))
     return y
 
 
@@ -49,8 +53,10 @@ def z_end(theta):
     alpha: List[4]= alpha1, alpha2, alpha3, alpha4  List of alpha angles
     length: List[4] = length1, length2, length3, length4 List of joint length'''
     z = length[0] + length[1] * sin(r(theta[1])) + length[3] * cos(r(theta[3])) * (
-            cos(r(theta[1])) * sin(r(theta[2])) + cos(r(theta[2])) * sin(r(theta[1]))) + length[3] * sin(r(theta[3])) * (
-                cos(r(theta[1])) * cos(r(theta[2])) - sin(r(theta[1])) * sin(r(theta[2]))) + length[2] * cos(r(theta[1])) * sin(
+            cos(r(theta[1])) * sin(r(theta[2])) + cos(r(theta[2])) * sin(r(theta[1]))) + length[3] * sin(
+        r(theta[3])) * (
+                cos(r(theta[1])) * cos(r(theta[2])) - sin(r(theta[1])) * sin(r(theta[2]))) + length[2] * cos(
+        r(theta[1])) * sin(
         r(theta[2])) + length[2] * cos(r(theta[2])) * sin(r(theta[1]))
     return z
 
@@ -79,8 +85,9 @@ def get_inverse(x, y, z):
 
     b = (-150, 150)  # Arbitrary bounds for now
     bnds = (b, b, b, b)  # Bounds for r(theta[2]), r(theta[3]), theta4
-    #cons = [
-        #{'type': 'eq', 'fun': end_constraint}]  # Define constraint type and function to feed into scipy  constraints
+
+    # cons = [
+    # {'type': 'eq', 'fun': end_constraint}]  # Define constraint type and function to feed into scipy  constraints
 
     def _get_theta(x, y):
         '''Function to get r(theta[1])
@@ -91,12 +98,12 @@ def get_inverse(x, y, z):
         except ZeroDivisionError:  # Catch Error for when y=0 raise ZeroDivisionError
             return 0
 
-    #t1 = _get_theta(x, y)
-    x0 = array([0.3,0.3,0.3,0.3])
-    minimizer_kwargs = {"method":"SLSQP", "args":(x,y,z), "bounds":bnds}
-    #sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', bounds=bnds, 
-                   #options={'disp': True})
-    sol = basinhopping(objective, x0, niter=50,minimizer_kwargs=minimizer_kwargs, disp = True)
+    # t1 = _get_theta(x, y)
+    x0 = array([0.3, 0.3, 0.3, 0.3])
+    minimizer_kwargs = {"method": "SLSQP", "args": (x, y, z), "bounds": bnds}
+    # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', bounds=bnds,
+    # options={'disp': True})
+    sol = basinhopping(objective, x0, niter=50, minimizer_kwargs=minimizer_kwargs, disp=True)
     angles = sol.x
 
     return angles
@@ -115,7 +122,7 @@ def get_forward(theta):
 
 
 # Script for testing. Compare p1 and p1_prime
-p1 = [20,20, 2]
-#p1 = [18.7, 0, 16.5]
+p1 = [20, 20, 2]
+# p1 = [18.7, 0, 16.5]
 p1_sol = get_inverse(p1[0], p1[1], p1[2])
 p1_prime = get_forward(p1_sol)
