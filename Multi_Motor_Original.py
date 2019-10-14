@@ -5,6 +5,7 @@ import argparse
 import ctypes
 import os
 from dynamixel_sdk import *  # Uses Dynamixel SDK library
+import ik
 
 if os.name == 'nt':
     import msvcrt
@@ -104,6 +105,10 @@ class Dynamixel():
             print("Press any key to terminate...")
             getch()
             quit()
+    
+    def read_speed(self,id):
+        speed, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, self.DXL_ID_1, self.ADDR_AX12A_MOVE_SPEED)
+        print("Speed of ID {} is {}.".format(id,speed))
 
     # Function to read present position
     def read_pos(self, id):
@@ -123,10 +128,10 @@ class Dynamixel():
                                                                        int(speed))
         # print("Set Speed ",id,'---',dxl_comm_result,'---',dxl_error)
         if dxl_comm_result != COMM_SUCCESS:
-            print("fail")
+            # print("fail")
             return self.set_joint_speed(id, speed)
         elif dxl_error != 0:
-            print("fail")
+            # print("fail")
             return self.set_joint_speed(id, speed)
         else:
             print("Dynamixel#%d speed has been set: %s" % (id, speed))
@@ -248,13 +253,25 @@ if __name__ == '__main__':
     dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
     dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
 
+    print("Set speed haven't done")
+    servo.read_speed(servo.DXL_ID_6)
+    servo.read_speed(servo.DXL_ID_1)
+    servo.read_speed(servo.DXL_ID_2)
+    servo.read_speed(servo.DXL_ID_3)
+
     # Set Speed of Servo
-    joint_speed = 1
+    joint_speed = 10
     servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
-        
+    
+    print("Set speed done")
+    servo.read_speed(servo.DXL_ID_6)
+    servo.read_speed(servo.DXL_ID_1)
+    servo.read_speed(servo.DXL_ID_2)
+    servo.read_speed(servo.DXL_ID_3)
+
     x= 20
     while 1:
         if args.user_input:
@@ -317,11 +334,18 @@ if __name__ == '__main__':
                     break
         else:
             for i in range(0,x,2):
-                arr = [150, 150, 150, 150]
-                GoalPosition_6_deg, GoalPosition_6 = program_input(arr[0]+i)
-                GoalPosition_1_deg, GoalPosition_1 = program_input(arr[1]+i)
-                GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2]+i)
-                GoalPosition_3_deg, GoalPosition_3 = program_input(arr[3]+i)
+                # arr = [150, 150, 150, 150]
+                # arr = ik.get_inverse(221.81513494409495, 0.0, 137.66452833423486)           # home position
+                arr = ik.get_inverse(101.81513494409495, 0.0, 137.66452833423486/2.0)
+                print(arr)
+                print("xxxxxxxxxxxxxxxx")
+                arr = [i + 150 for i in arr]
+                print(arr)
+
+                GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
+                GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
+                GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
+                GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
 
                 # Allocate goal position value into byte array
                 param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
