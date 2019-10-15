@@ -344,7 +344,7 @@ if __name__ == '__main__':
             for i in range(0,x,2):
                 # arr = [150, 170, 150, 150]
                 # arr = ik.get_inverse(18.7+14.5, 0.0, 16.5-14.5)           # home position
-                arr = ik.get_inverse(38.7+14.5, 0.0, 6.5-14.5)
+                arr = ik.get_inverse(18.7, 0, 16.5+5)
                 arr = [i + 150.0 for i in arr]
                 # arr[1]=arr[1]-60
                 print(arr)
