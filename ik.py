@@ -46,14 +46,14 @@ def end_constraint(theta):
     '''Constraint of sum (r(theta[2]) to theta4) must be 180 to keep pen parallel to paper
     ---------------------------------------------------------------------------------
     theta: List[3] of r(theta[2]) to theta 4'''
-    return sum(theta) - 180
+    return sum(theta)
 
 
 def objective(theta, x, y, z):
     ''' Custom objective of RMS Error to calculate distance. 
     Find error between result and target value'''
     dist = sqrt((x_end(theta) - x) ** 2) + sqrt((y_end(theta) - y) ** 2) + sqrt((z_end(theta) - z) ** 2)
-    print("Current epoch RMS Error: {}".format(dist))
+    #print("Current epoch RMS Error: {}".format(dist))
     return dist
 
 
@@ -65,7 +65,7 @@ def get_inverse(x, y, z):
     Returns list of r(theta[1]),2,3,4'''
 
     b = (-150, 150)  # Arbitrary bounds for now
-    bnds = (b, b, b, b)  # Bounds for r(theta[2]), r(theta[3]), theta4
+    bnds = (b, b, b,(-150,0))  # Bounds for r(theta[2]), r(theta[3]), theta4
 
     # cons = [
     # {'type': 'eq', 'fun': end_constraint}]  # Define constraint type and function to feed into scipy  constraints
@@ -82,9 +82,10 @@ def get_inverse(x, y, z):
     # t1 = _get_theta(x, y)
     x0 = array([0.3, 0.3, 0.3, 0.3])
     minimizer_kwargs = {"method": "SLSQP", "args": (x, y, z), "bounds": bnds}
-    # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', bounds=bnds,
-    # options={'disp': True})
-    sol = basinhopping(objective, x0, niter=40, minimizer_kwargs=minimizer_kwargs, disp=True)
+    cons ={'type': 'eq', 'fun':end_constraint}
+    # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', constraints=[cons],bounds=bnds,options={'disp': True})
+    sol = minimize(objective, x0, args=(x, y, z), method='SLSQP',bounds=bnds,options={'disp': True})
+    #sol = basinhopping(objective, x0, niter=40, minimizer_kwargs=minimizer_kwargs, disp=True)
     angles = sol.x
 
     return angles
