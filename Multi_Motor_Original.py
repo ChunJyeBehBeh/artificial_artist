@@ -5,7 +5,7 @@ import argparse
 import ctypes
 import os
 from dynamixel_sdk import *  # Uses Dynamixel SDK library
-import ik_old as ik
+import ik as ik
 
 if os.name == 'nt':
     import msvcrt
@@ -343,12 +343,10 @@ if __name__ == '__main__':
         else:
             for i in range(0,x,2):
                 # arr = [150, 170, 150, 150]
-                arr = ik.get_inverse(221.81513494409495, 0.0, 137.66452833423486)           # home position
-                # arr = ik.get_inverse(101.81513494409495, 0.0, 137.66452833423486/2.0)
-                # arr = ik.get_inverse(33.2, 0.0, 2.0)
-                print(arr)
-                print("xxxxxxxxxxxxxxxx")
-                arr = [i + 150 for i in arr]
+                # arr = ik.get_inverse(18.7+14.5, 0.0, 16.5-14.5)           # home position
+                arr = ik.get_inverse(38.7+14.5, 0.0, 6.5-14.5)
+                arr = [i + 150.0 for i in arr]
+                # arr[1]=arr[1]-60
                 print(arr)
 
                 GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])

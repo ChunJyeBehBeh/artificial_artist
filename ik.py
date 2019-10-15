@@ -120,9 +120,9 @@ def get_forward(theta):
     z = z_end(theta)
     return [x, y, z]
 
-
-# Script for testing. Compare p1 and p1_prime
-p1 = [20, 20, 2]
-# p1 = [18.7, 0, 16.5]
-p1_sol = get_inverse(p1[0], p1[1], p1[2])
-p1_prime = get_forward(p1_sol)
+if __name__ == "__main__":
+    # Script for testing. Compare p1 and p1_prime
+    p1 = [20, 20, 2]
+    # p1 = [18.7, 0, 16.5]
+    p1_sol = get_inverse(p1[0], p1[1], p1[2])
+    p1_prime = get_forward(p1_sol)
