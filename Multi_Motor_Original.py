@@ -303,12 +303,11 @@ if __name__ == '__main__':
 
             Report "Finish Drawing" to user 
             '''
-            arr = ik.get_inverse(6.27-4,5.07,4+4)                # offset for end effector
+            arr = ik.get_inverse(20-4,0,0+4)                # offset for end effector
 
             arr[3] = -arr[3]
-            arr = [i + 150.0 for i in arr]
             print(arr)
-
+            arr = [i + 150.0 for i in arr]
 
             GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
             GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
