@@ -27,6 +27,7 @@ class Drawer(object):
                         self.pts.remove((y + j, x + i))
                         self.findPathUtils(y + j, x + i)
                 except Exception as e:
+                    print(e)
                     pass
 
     def findPath(self):

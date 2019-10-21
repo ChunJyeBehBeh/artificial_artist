@@ -9,6 +9,8 @@ import numpy as np
 import ik as ik
 import time
 from draw_test import *
+import numpy as np
+
 
 filename = "Love.png"
 drawer = Drawer(filename)
@@ -202,8 +204,6 @@ def move_to():
         dxl_present_position_2, _, _ = servo.read_pos(servo.DXL_ID_2)
         dxl_present_position_3, _, _ = servo.read_pos(servo.DXL_ID_3)
 
-        print(dxl_present_position_2)
-
         dxl_present_position_6_deg = dxl_present_position_6 / 1023 * 300
         dxl_present_position_1_deg = dxl_present_position_1 / 1023 * 300
         dxl_present_position_2_deg = dxl_present_position_2 / 1023 * 300
@@ -216,7 +216,7 @@ def move_to():
             servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
             servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
 
-        print("ID 6 {} {}".format(GoalPosition_6,dxl_present_position_6))
+        # print("ID 6 {} {}".format(GoalPosition_6,dxl_present_position_6))
         if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_2 - dxl_present_position_2) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
@@ -281,14 +281,23 @@ if __name__ == '__main__':
 
             Report "Finish Drawing" to user 
             '''
-            arr =drawer.draw()
+            # arr =drawer.draw()
+            # arr=np.asarray(arr)*0.025
+            # arr=arr[::4]
+            # arr = arr.tolist()
+            arr = [[5,0],[7,0],[7,3],[5,0]]
+            # arr=np.asarray(arr)*0.05
+            # arr = arr[::20]
+  
+
             for i in arr:
-                arr = ik.get_inverse(i[0]-4, i[1],0+4)                # offset for end effector
+                print("From Drawing: ",i[0]+10-4, i[1],2+4)
+                arr = ik.get_inverse(i[0]+10-4, i[1],-1.2+4)                # offset for end effector
 
                 arr[3] = -arr[3]
-                print(arr)
+                print("From IK(after +150): ",arr)
                 arr = [i + 150.0 for i in arr]
-
+                
                 GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
                 GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
                 GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
@@ -296,6 +305,9 @@ if __name__ == '__main__':
 
                 # angle into param_goal_position_6 is degree/300*1023
                 move_to()
+                print("--- Delay ---")
+                time.sleep(1.0)
+                print("--- Next ---")
 
                 # break
 
