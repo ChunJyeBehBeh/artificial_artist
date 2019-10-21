@@ -12,7 +12,6 @@ import time
 if os.name == 'nt':
     import msvcrt
 
-
     def getch():
         return msvcrt.getch().decode()
 else:
@@ -32,6 +31,8 @@ else:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
 
+# Program Parameters
+print_param = False
 
 def user_input(id):
     val = float(input(
@@ -112,7 +113,7 @@ class Dynamixel():
         '''
         arg = True for debug purpose, then it will print out the msg
         '''
-        speed, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, self.DXL_ID_1, self.ADDR_AX12A_MOVE_SPEED)
+        speed, _, _ = self.packetHandler.read2ByteTxRx(self.portHandler, self.DXL_ID_1, self.ADDR_AX12A_MOVE_SPEED)
         if arg:
             print("Speed of ID {} is {}.".format(id,speed))
         return int(speed)
@@ -170,7 +171,6 @@ class Dynamixel():
         # Add Dynamixel#n goal position value to the Syncwrite storage
         dxl_addparam_result = ctypes.c_ubyte(
             self.groupSyncWrite.addParam(id, goal_position)).value
-        # print(dxl_addparam_result)
         if dxl_addparam_result != 1:
             print(dxl_addparam_result)
             print("[ID:%03d] groupSyncWrite addparam failed" % (id))
@@ -193,6 +193,12 @@ def move_to():
         GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
     param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
         GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+    
+    print("--- Test ---")
+    print(GoalPosition_3,GoalPosition_6,GoalPosition_2,GoalPosition_1)
+    print("After the DXL_LOBYTE DXL_HIBYTE Function")
+    print(param_goal_position_3,param_goal_position_6,param_goal_position_2,param_goal_position_1)
+    print("--- Test ---")
 
     # Send goal to syncwrite storage
     servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
@@ -205,15 +211,12 @@ def move_to():
 
     if dxl_comm_result != COMM_SUCCESS:
         print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
-
-    # Clear syncwrite parameter storage
-    servo.groupSyncWrite.clearParam()
-
-    # if dxl_comm_result != COMM_SUCCESS:
-    #     print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
     # elif dxl_error != 0:
     #     print("%s" % packetHandler.getRxPacketError(dxl_error))
 
+    # Clear syncwrite parameter storage
+    servo.groupSyncWrite.clearParam()
+    
     while 1:
         # Read present position
         dxl_present_position_6, _, _ = servo.read_pos(servo.DXL_ID_6)
@@ -229,15 +232,18 @@ def move_to():
         dxl_present_position_3_deg = dxl_present_position_3 / 1023 * 300
 
         # Print Statues
-        servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
-        servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
-        servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
-        servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
+        if print_param:
+            servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
+            servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+            servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
+            servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
 
-        if not (abs(GoalPosition_6 - dxl_present_position_6) or abs(GoalPosition_1 - dxl_present_position_1) or
-                abs(GoalPosition_2 - dxl_present_position_2) or abs(
-                    GoalPosition_3 - dxl_present_position_3)) > servo.DXL_MOVING_STATUS_THRESHOLD:
-            break
+        print("ID 6 {} {}".format(GoalPosition_6,dxl_present_position_6))
+        if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                (abs(GoalPosition_2 - dxl_present_position_2) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                (abs(GoalPosition_3 - dxl_present_position_3) <= servo.DXL_MOVING_STATUS_THRESHOLD)):
+                break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dynamixel Servo Control')
@@ -266,11 +272,10 @@ if __name__ == '__main__':
 
     # Set Speed of Servo
     joint_speed = 10
-    servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
-    servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
-    servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
-    servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
-
+    servo.set_joint_speed(servo.DXL_ID_6, 10)
+    servo.set_joint_speed(servo.DXL_ID_3, 11)
+    servo.set_joint_speed(servo.DXL_ID_2, 13)
+    servo.set_joint_speed(servo.DXL_ID_1, 14)
     
     print("Set speed done")
     servo.read_speed(servo.DXL_ID_6,True)
@@ -289,7 +294,17 @@ if __name__ == '__main__':
             move_to()
 
         else:
-            arr = ik.get_inverse(20+4,0,0-3.4)          # offset for end effector
+            '''
+            Get list from image_processing, if x=9999=9999,that means we need to lift up/down our marker [transition state], set transition = !transition, lift up
+            Move the marker to the first point of next line, that set transition = !transition, lift down
+            Draw Draw Draw until x=y=0 again, set transition = !transition, lift up
+
+            recursive until last packet/ line.....
+
+            Report "Finish Drawing" to user 
+            '''
+            arr = ik.get_inverse(20-4,0,0+4)                # offset for end effector
+
             arr[3] = -arr[3]
             print(arr)
             arr = [i + 150.0 for i in arr]
@@ -299,22 +314,21 @@ if __name__ == '__main__':
             GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
             GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
 
+            # angle into param_goal_position_6 is degree/300*1023
             move_to()
+            arr = ik.get_inverse(25-4,0,0+4)                # offset for end effector
 
-            # arr = np.round(ik.get_inverse(15.3,5,7),1)
-            # arr[3] = -arr[3]
-            # print(arr)
-            # arr = [i + 150.0 for i in arr]
+            arr[3] = -arr[3]
+            print(arr)
+            arr = [i + 150.0 for i in arr]
 
-            # time.sleep(5.0)
+            GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
+            GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
+            GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
+            GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
 
-            # GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
-            # GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
-            # GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
-            # GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
-
-            # move_to()
-            # time.sleep(10.0)
+            # angle into param_goal_position_6 is degree/300*1023
+            move_to()
 
             # break
 

@@ -81,11 +81,11 @@ def get_inverse(x, y, z):
 
     # t1 = _get_theta(x, y)
     x0 = array([0.3, 0.3, 0.3, 0.3])
-    minimizer_kwargs = {"method": "SLSQP", "args": (x, y, z), "bounds": bnds}
     cons ={'type': 'eq', 'fun':end_constraint}
+    minimizer_kwargs = {"method": "SLSQP", "args": (x, y, z), "bounds": bnds, "constraints": cons}
     # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', constraints=[cons],bounds=bnds,options={'disp': True})
-    sol = minimize(objective, x0, args=(x, y, z), method='SLSQP',bounds=bnds,options={'disp': True})
-    #sol = basinhopping(objective, x0, niter=40, minimizer_kwargs=minimizer_kwargs, disp=True)
+    # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP',bounds=bnds,options={'disp': True})
+    sol = basinhopping(objective, x0, niter=40, minimizer_kwargs=minimizer_kwargs,disp=True)
     angles = sol.x
 
     return angles
