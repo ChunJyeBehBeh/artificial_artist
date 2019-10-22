@@ -2,8 +2,6 @@ from dynamixel_sdk import *
 import time
 import ctypes
 
-
-
 def syncwrite_storage(id, goal_position):
         # Add Dynamixel#n goal position value to the Syncwrite storage
         dxl_addparam_result = groupSyncWrite.addParam(id, goal_position)

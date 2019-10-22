@@ -8,7 +8,7 @@ from dynamixel_sdk import *  # Uses Dynamixel SDK library
 import numpy as np
 import ik as ik
 import time
-from draw_test import *
+from draw import *
 import numpy as np
 from pid_test import pid
 

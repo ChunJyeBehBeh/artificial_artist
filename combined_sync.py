@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -6,14 +6,24 @@ import ctypes
 import os
 from dynamixel_sdk import *  # Uses Dynamixel SDK library
 import numpy as np
-import ik as ik
 import time
-from draw_test import *
-import numpy as np
+import ik as ik
+from draw import *
+from play_sound import *
+ import argparse
+ import ctypes
+ import ik as ik
+ import numpy as np
+ import os
+ import time
+ from draw import *
+ from dynamixel_sdk import *  # Uses Dynamixel SDK library
+ from play_sound import *
 
-
-filename = "Love.png"
-drawer = Drawer(filename)
+ H_move = -1.5+4
+H_draw = -2.2+4
+filename = "Image/Love.png"
+drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
     
 if os.name == 'nt':
@@ -301,13 +311,18 @@ if __name__ == '__main__':
 
             Report "Finish Drawing" to user 
             '''
-            # arr =drawer.draw()
-            # arr=np.asarray(arr)*0.025
-            # arr=arr[::4]
-            # arr = arr.tolist()
-            arr = [[7,0],[7,0.5]]
-            # arr=np.asarray(arr)*0.05
-            # arr = arr[::20]
+            arr =drawer.draw()
+            arr=np.asarray(arr)
+
+            # Factor x coordinate & y coordinate
+            for i in arr:
+                i[0] = i[0]*0.1
+                i[1] = i[1]*0.05
+            
+            arr=arr[::4]
+            arr = arr.tolist()
+
+            # arr = [[7,0],[7,0.5]]
   
             for i in arr:
                 print("From Drawing: ",i[0]+10-4, i[1],2+4)
@@ -328,8 +343,8 @@ if __name__ == '__main__':
                 time.sleep(1.0)
                 print("--- Next ---")
 
-                # break
-
+    play_sound()
+    
     # Disable Dynamixel Torque
     servo.disable_servo_torque(servo.DXL_ID_6)
     servo.disable_servo_torque(servo.DXL_ID_1)
