@@ -5,7 +5,6 @@ Reference: https://pythonprogramminglanguage.com/text-to-speech/
 '''
 import pyttsx
 import time
-from PID import PID
 
 test_voice = False
 
@@ -41,28 +40,6 @@ def play_sound():
     engine.say('Oh yeah')
     engine.runAndWait()
 
-def pid():
-    # PID Parameters
-    KP = 0
-    KI = 0.1
-    KD = 0
-    SAMPLE_TIME = 0.01
-    UPPER_LIMIT = 200
-    LOWER_LIMIT = -100
-
-    # pid = PID(1, 0.1, 0.05, setpoint=1)
-
-    # Create PID 
-    pid = [PID() for x in range(2)]
-
-    for x in range(2):
-        pid[x].sample_time = SAMPLE_TIME
-        pid[x].tunings = (KP, KI, KD)
-        pid[x].output_limit = (LOWER_LIMIT, UPPER_LIMIT)
-        pid[x].setpoint = 512
-        pid[x].auto_mode = False
-
-
 
 if __name__ == "__main__":
-    # play_sound()
+    play_sound()

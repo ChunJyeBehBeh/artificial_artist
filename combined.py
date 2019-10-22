@@ -120,14 +120,14 @@ class Dynamixel():
         '''
         arg = True for debug purpose, then it will print out the msg
         '''
-        speed, _, _ = self.packetHandler.read2ByteTxRx(self.portHandler, self.DXL_ID_1, self.ADDR_AX12A_MOVE_SPEED)
+        speed, _, _ = self.packetHandler.read2ByteTxRx(self.portHandler, id, self.ADDR_AX12A_MOVE_SPEED)
         if arg:
             print("Speed of ID {} is {}.".format(id,speed))
         return int(speed)
 
     # Function to read present position
     def read_pos(self, id):
-        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read4ByteTxRx(self.portHandler, id,
+        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, id,
                                                                                             self.ADDR_MX_PRESENT_POSITION)
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
