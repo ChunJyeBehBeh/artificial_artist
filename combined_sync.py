@@ -191,16 +191,34 @@ class Dynamixel():
         print("[ID: {} GoalPos: {:.03f}  PresPos: {:.03f} ]".format(id, goal_position, present_position))
 
 def move_to():
-    '''
-    Currently this function is uesless. Can just ignore it
-    '''
-    servo.goal_send(servo.DXL_ID_3,GoalPosition_3)
-    servo.goal_send(servo.DXL_ID_6,GoalPosition_6)
-    servo.goal_send(servo.DXL_ID_2,GoalPosition_2)
-    servo.goal_send(servo.DXL_ID_1,GoalPosition_1)
+    # Allocate goal position value into byte array
+    param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
+    param_goal_position_1 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_1)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_1)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_1)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_1))]
+    param_goal_position_2 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_2)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
+    param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
+        GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+
+    # Send goal to syncwrite storage
+    servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
+    servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
+    servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
+    servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
+
+    # Syncwrite goal position
+    dxl_comm_result = servo.groupSyncWrite.txPacket()
+
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
+    # elif dxl_error != 0:
+    #     print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+    # Clear syncwrite parameter storage
+    servo.groupSyncWrite.clearParam()
 
     while 1:
-        
         # Read present position
         dxl_present_position_6, _, _ = servo.read_pos(servo.DXL_ID_6)
         dxl_present_position_1, _, _ = servo.read_pos(servo.DXL_ID_1)
@@ -287,13 +305,13 @@ if __name__ == '__main__':
             # arr=np.asarray(arr)*0.025
             # arr=arr[::4]
             # arr = arr.tolist()
-            arr = [[5,0],[7,0],[7,3],[5,0]]
+            arr = [[7,0],[7,0.5]]
             # arr=np.asarray(arr)*0.05
             # arr = arr[::20]
   
             for i in arr:
                 print("From Drawing: ",i[0]+10-4, i[1],2+4)
-                arr = ik.get_inverse(i[0]+10-4, i[1],-1.2+4)                # offset for end effector
+                arr = ik.get_inverse(i[0]+10-4, i[1],-2.2+4)                # offset for end effector
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]

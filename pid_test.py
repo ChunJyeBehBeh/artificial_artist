@@ -104,7 +104,7 @@ if __name__ == "__main__":
                                                                                  ADDR_MX_PRESENT_POSITION)
             # Compute a new output value
             output = int(pid(currentpos)) + 512
-            print(output)
+            print("Current Pos: {} Output from PID: {}.".format(currentpos,output))
 
             # Output PID to motor
             dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, DXL_ID_6, ADDR_MX_GOAL_POSITION,

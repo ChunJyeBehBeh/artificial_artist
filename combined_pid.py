@@ -10,7 +10,7 @@ import ik as ik
 import time
 from draw_test import *
 import numpy as np
-
+from pid_test import pid
 
 filename = "Love.png"
 drawer = Drawer(filename)
@@ -63,6 +63,7 @@ class Dynamixel():
         self.ADDR_MX_GOAL_POSITION = 30  # <-----
         self.ADDR_MX_PRESENT_POSITION = 36
         self.ADDR_AX12A_MOVE_SPEED = 32
+        self.ADDR_MX_PRESENT_SPEED = 38
 
         # Data Byte Length
         self.LEN_MX_GOAL_POSITION = 4
@@ -132,9 +133,12 @@ class Dynamixel():
         if dxl_comm_result != COMM_SUCCESS:
             # [TxRxResult] Incorrect status packet!
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+            self.read_pos(id)
+
         elif dxl_error != 0:
             print("here!!!")
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+            self.read_pos(id)
 
         return dxl_present_position, dxl_comm_result, dxl_error
 
@@ -199,31 +203,45 @@ def move_to():
     servo.goal_send(servo.DXL_ID_2,GoalPosition_2)
     servo.goal_send(servo.DXL_ID_1,GoalPosition_1)
 
-    while 1:
-        
-        # Read present position
-        dxl_present_position_6, _, _ = servo.read_pos(servo.DXL_ID_6)
-        dxl_present_position_1, _, _ = servo.read_pos(servo.DXL_ID_1)
-        dxl_present_position_2, _, _ = servo.read_pos(servo.DXL_ID_2)
-        dxl_present_position_3, _, _ = servo.read_pos(servo.DXL_ID_3)
+    # Enable PID to ensure vertical
+    pid.auto_mode = True
 
-        dxl_present_position_6_deg = dxl_present_position_6 / 1023.0 * 300.0
-        dxl_present_position_1_deg = dxl_present_position_1 / 1023.0 * 300.0
-        dxl_present_position_2_deg = dxl_present_position_2 / 1023.0 * 300.0
-        dxl_present_position_3_deg = dxl_present_position_3 / 1023.0 * 300.0
+    # Get current speed 
+    speed, _, _ = servo.packetHandler.read2ByteTxRx(servo.portHandler, servo.DXL_ID_6, servo.ADDR_MX_PRESENT_SPEED)
+    
+    print("Speed {}".format(speed))
+    if speed < 10:
+        while True:
+            # Read present position
+            dxl_present_position_6, _, _ = servo.read_pos(servo.DXL_ID_6)
+            dxl_present_position_1, _, _ = servo.read_pos(servo.DXL_ID_1)
+            dxl_present_position_2, _, _ = servo.read_pos(servo.DXL_ID_2)
+            dxl_present_position_3, _, _ = servo.read_pos(servo.DXL_ID_3)
 
-        # Print Statues
-        if print_param:
-            servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
-            servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
-            servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
-            servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+            output_pid = int(pid(dxl_present_position_6)) + pid.setpoint
 
-        if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
-                (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
-                (abs(GoalPosition_2 - dxl_present_position_2) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
-                (abs(GoalPosition_3 - dxl_present_position_3) <= servo.DXL_MOVING_STATUS_THRESHOLD)):
-                break
+            print("Current Pos: {} Output from PID: {}.".format(dxl_present_position_6,output_pid))
+
+            servo.goal_send(servo.DXL_ID_6,output_pid)
+
+            dxl_present_position_6_deg = dxl_present_position_6 / 1023.0 * 300.0
+            dxl_present_position_1_deg = dxl_present_position_1 / 1023.0 * 300.0
+            dxl_present_position_2_deg = dxl_present_position_2 / 1023.0 * 300.0
+            dxl_present_position_3_deg = dxl_present_position_3 / 1023.0 * 300.0
+
+            # Print Statues
+            if print_param:
+                servo.print_status(servo.DXL_ID_3, GoalPosition_3_deg, dxl_present_position_3_deg)
+                servo.print_status(servo.DXL_ID_6, GoalPosition_6_deg, dxl_present_position_6_deg)
+                servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
+                servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
+
+            if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                    (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                    (abs(GoalPosition_2 - dxl_present_position_2) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
+                    (abs(GoalPosition_3 - dxl_present_position_3) <= servo.DXL_MOVING_STATUS_THRESHOLD)):
+                    break
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dynamixel Servo Control')
@@ -231,6 +249,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     servo = Dynamixel(args)
+
+    pid = pid()
 
     # Enable Dynamixel Torque
     servo.enable_servo_torque(servo.DXL_ID_6)
@@ -287,13 +307,15 @@ if __name__ == '__main__':
             # arr=np.asarray(arr)*0.025
             # arr=arr[::4]
             # arr = arr.tolist()
-            arr = [[5,0],[7,0],[7,3],[5,0]]
+            arr = [[7,0],[7,3]]
+            # arr = [[5,0],[7,0],[7,3]]
             # arr=np.asarray(arr)*0.05
             # arr = arr[::20]
   
-            for i in arr:
+            for counter,i in enumerate(arr):
+                print("Point {}".format(counter+1))
                 print("From Drawing: ",i[0]+10-4, i[1],2+4)
-                arr = ik.get_inverse(i[0]+10-4, i[1],-1.2+4)                # offset for end effector
+                arr = ik.get_inverse(i[0]+10-4, i[1],-2.2+4)                # offset for end effector
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]
@@ -303,6 +325,8 @@ if __name__ == '__main__':
                 GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
                 GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
                 GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
+
+                pid.setpoint = GoalPosition_6
 
                 # angle into param_goal_position_6 is degree/300*1023
                 move_to()
