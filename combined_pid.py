@@ -12,8 +12,13 @@ from draw import *
 import numpy as np
 from pid_test import pid
 
-filename = "Love.png"
-drawer = Drawer(filename)
+# Parameters for Program Drawing
+H_move =  2+4
+H_draw = -2.7+4
+# filename = "Image/Love.png"
+filename = "Image/result.jpg"
+
+drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
     
 if os.name == 'nt':
@@ -307,15 +312,15 @@ if __name__ == '__main__':
             # arr=np.asarray(arr)*0.025
             # arr=arr[::4]
             # arr = arr.tolist()
-            arr = [[7,0],[7,3]]
-            # arr = [[5,0],[7,0],[7,3]]
+            # arr = [[7,0],[7,3]]
+            arr = [[3,0],[4,0],[5,0],[6,0],[7,0]]
             # arr=np.asarray(arr)*0.05
             # arr = arr[::20]
   
             for counter,i in enumerate(arr):
                 print("Point {}".format(counter+1))
-                print("From Drawing: ",i[0]+10-4, i[1],2+4)
-                arr = ik.get_inverse(i[0]+10-4, i[1],-2.2+4)                # offset for end effector
+                print("From Drawing: ",i[0]+5, i[1],0)
+                arr = ik.get_inverse(i[0]+5, 0,0)                # offset for end effector
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]

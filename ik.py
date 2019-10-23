@@ -85,7 +85,7 @@ def get_inverse(x, y, z):
     minimizer_kwargs = {"method": "SLSQP", "args": (x, y, z), "bounds": bnds, "constraints": cons}
     # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP', constraints=[cons],bounds=bnds,options={'disp': True})
     # sol = minimize(objective, x0, args=(x, y, z), method='SLSQP',bounds=bnds,options={'disp': True})
-    sol = basinhopping(objective, x0, niter=4, minimizer_kwargs=minimizer_kwargs,disp=False)
+    sol = basinhopping(objective, x0, niter=50, minimizer_kwargs=minimizer_kwargs,disp=False)
     angles = sol.x
 
     return angles

@@ -40,7 +40,7 @@ class Drawer(object):
 
         # Convert gray pixels into black
         self.arr[self.arr < 150] = 0
-
+        
         # Find all black pixels
         self.pts = set(map(tuple, np.argwhere(self.arr == 0)))
 
@@ -105,7 +105,10 @@ class Drawer(object):
     def draw(self):
         if(self.display):
             cv2.namedWindow("test", cv2.WINDOW_NORMAL)
+            a = 0
             for y, x, h in self.path:
+                a +=1
+                print(a)
                 print("y, x, h = {}, {}, {}".format(y, x, h))
                 self.arr[y, x] = 0
                 cv2.imshow("test", self.arr)
@@ -113,23 +116,29 @@ class Drawer(object):
                 if key == 27: # If ESC is pressed, exit loop
                     cv2.destroyAllWindows()
                     break
+            cv2.imwrite("abc.jpg",self.arr)
         return self.path 
 
 def main():
-    filename = "Image/Love.png"
-    drawer = Drawer(filename, 1, 9,True)
+    filename = "Image/circle1.png"
+    # filename = "Image/Love.png"
+    drawer = Drawer(filename, 0.1,0.9,True)
     drawer.findPath()
     arr = drawer.draw()
     arr=np.asarray(arr)         # <type 'numpy.ndarray'>
-
+    print("Number of point to IK: {}".format(len(arr)))
     # Factor x coordinate & y coordinate
     for i in arr:
-        i[0] = i[0]*0.1
+        i[0] = i[0]*0.08
         i[1] = i[1]*0.05
-    
-    arr=arr[::4]
-    arr = arr.tolist()          # <type 'list'>
-
+    arr = np.round(arr,1)
+    print(arr)
+    print("Number of point to IK: {}".format(len(arr)))
+    # arr=arr[::10]             # skip every 10 numbers
+    _,idx = np.unique(arr, axis=0, return_index=True)
+    arr = arr[np.sort(idx)]
+    print(arr)
+    print("After F Number of point to IK: {}".format(len(arr)))
 
 if __name__ == "__main__":
     main()

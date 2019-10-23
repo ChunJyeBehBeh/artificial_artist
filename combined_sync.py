@@ -1,31 +1,36 @@
  #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import argparse
+import warnings
 import ctypes
 import os
-from dynamixel_sdk import *  # Uses Dynamixel SDK library
 import numpy as np
 import time
+import argparse
+import ctypes
+from math import sqrt
 import ik as ik
 from draw import *
+from dynamixel_sdk import *  # Uses Dynamixel SDK library
 from play_sound import *
- import argparse
- import ctypes
- import ik as ik
- import numpy as np
- import os
- import time
- from draw import *
- from dynamixel_sdk import *  # Uses Dynamixel SDK library
- from play_sound import *
 
- H_move = -1.5+4
-H_draw = -2.2+4
-filename = "Image/Love.png"
+# Parameters for Program Drawing
+H_move =  2+4
+H_draw = -2.7+4
+filename = "Image/circle1.png"
+# filename = "Image/result.jpg"
+
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
-    
+
+# Program Parameters for Dynamixel Servos
+print_param = True          # printing status of Dynamixel Servos
+testing = False
+min_X = 10
+max_X = 30
+min_Y =-15
+max_Y = 15
+
 if os.name == 'nt':
     import msvcrt
 
@@ -48,16 +53,20 @@ else:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
 
-# Program Parameters
-print_param = True
-
 def user_input(id):
     val = float(input(
         "Enter Goal Position for Motor {} in degrees (Range is 0 to 300 degrees; 150 degrees is neutral position):".format(
             id)))
     return val, int(val / 300 * 1023)
 
-
+def get_offset(val):
+    if 9<=val<=11:
+        offset = (-2*val) +19.5
+    if 11<val<=14:
+        offset = (-val/1.3) +7 
+    else:
+        offset = 0
+    return offset
 def program_input(value):
     value = float(value)
     return value, int(value / 300 * 1023)
@@ -87,7 +96,8 @@ class Dynamixel():
         self.DXL_ID_2 = 2  # Dynamixel ID : 2
         self.DXL_ID_3 = 3  # Dynamixel ID : 3
         self.BAUDRATE = 1000000  # Dynamixel default baudrate : 57600
-        self.DEVICENAME = "/dev/ttyUSB0"  # Check which port is being used on your controller
+        self.DEVICENAME = "/dev/ttyUSB0"  
+        # Check which port is being used on your controller
         # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 
         self.TORQUE_ENABLE = 1  # Value for enabling the torque
@@ -272,24 +282,12 @@ if __name__ == '__main__':
     dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
     dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
 
-    print("Set speed haven't done")
-    servo.read_speed(servo.DXL_ID_6,True)
-    servo.read_speed(servo.DXL_ID_1,True)
-    servo.read_speed(servo.DXL_ID_2,True)
-    servo.read_speed(servo.DXL_ID_3,True)
-
     # Set Speed of Servo
     joint_speed = 50
     servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
-    
-    print("Set speed done")
-    servo.read_speed(servo.DXL_ID_6,True)
-    servo.read_speed(servo.DXL_ID_1,True)
-    servo.read_speed(servo.DXL_ID_2,True)
-    servo.read_speed(servo.DXL_ID_3,True)
 
     while 1:
         if args.user_input:
@@ -301,32 +299,49 @@ if __name__ == '__main__':
             
             move_to()
 
-        else:
-            '''
-            Get list from image_processing, if x=9999=9999,that means we need to lift up/down our marker [transition state], set transition = !transition, lift up
-            Move the marker to the first point of next line, that set transition = !transition, lift down
-            Draw Draw Draw until x=y=0 again, set transition = !transition, lift up
+        else:            
+            if not testing:
+                arr = drawer.draw()
+                arr=np.asarray(arr[900:])
+                print("Number of point to IK: {}".format(len(arr)))
 
-            recursive until last packet/ line.....
+                # Factor x coordinate & y coordinate
+                for i in arr:
+                    i[0] = i[0]*0.05
+                    i[1] = i[1]*0.05
 
-            Report "Finish Drawing" to user 
-            '''
-            arr =drawer.draw()
-            arr=np.asarray(arr)
+                # arr = np.round(arr,1)             # skip every 10 numbers
+                # _,idx = np.unique(arr[:,0], axis=0, return_index=True)
+                # arr = arr[np.sort(idx)]
+                # print("After Filtered, Number of point to IK: {}".format(len(arr)))
+            else:
+                print("Testing")
+                arr = [[10,0,0],[11,0,0],[12,0,0],[13,0,0],[14,0,0],[15,0,0]]
 
-            # Factor x coordinate & y coordinate
-            for i in arr:
-                i[0] = i[0]*0.1
-                i[1] = i[1]*0.05
-            
-            arr=arr[::4]
-            arr = arr.tolist()
+            for index, i in enumerate(arr):
+                '''
+                Y-coordinate from image processing is always positive, 
+                "-15" offset to use second quadrant
+                '''
+                if not testing:
+                    x_coor = int(i[0])+10
+                    y_coor = int(i[1])-15
+                    print("From Drawing for point {}:".format(index+1),i[0]+10-4, i[1]-15,i[2])
+                    arr = ik.get_inverse(i[0]+10, i[1]-15,i[2])                # offset for end effector
 
-            # arr = [[7,0],[7,0.5]]
-  
-            for i in arr:
-                print("From Drawing: ",i[0]+10-4, i[1],2+4)
-                arr = ik.get_inverse(i[0]+10-4, i[1],-2.2+4)                # offset for end effector
+                # '''test'''
+                else:
+                    x_coor = int(i[0])
+                    y_coor = int(i[1])
+                    print("From Drawing: ",i[0], i[1],i[2])
+                    print("if-else value:",sqrt(i[0]**2 + i[1]**2) )
+                    val = sqrt(i[0]**2 + i[1]**2)
+                    offset = get_offset(val)
+                    print("val: {0} offset:{1}".format(val,offset))
+                    
+                    print(i)
+                    arr = ik.get_inverse(i[0]+20, i[1],(i[2]))                # offset for end effector
+                '''test'''
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]
@@ -337,12 +352,16 @@ if __name__ == '__main__':
                 GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
                 GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
 
-                # angle into param_goal_position_6 is degree/300*1023
-                move_to()
+                if (x_coor>min_X or x_coor<max_X and (y_coor>min_Y or y_coor<max_Y)):
+                    move_to()
+                else:
+                    warnings.warn('Exceed the Limit. Skip that point')
                 print("--- Delay ---")
                 time.sleep(1.0)
                 print("--- Next ---")
 
+            break
+    print("Finished")
     play_sound()
     
     # Disable Dynamixel Torque
