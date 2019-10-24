@@ -79,7 +79,7 @@ class Dynamixel():
 
         # Control table address
         self.ADDR_MX_TORQUE_ENABLE = 24  # Control table address is different in Dynamixel model
-        self.ADDR_MX_GOAL_POSITION = 30  # <-----
+        self.ADDR_MX_GOAL_POSITION = 30  
         self.ADDR_MX_PRESENT_POSITION = 36
         self.ADDR_AX12A_MOVE_SPEED = 32
 
@@ -210,7 +210,7 @@ class Dynamixel():
     def print_status(self, id, goal_position, present_position):
         print("[ID: {} GoalPos: {:.03f}  PresPos: {:.03f} ]".format(id, goal_position, present_position))
 
-def move_to():
+def move_to(status_moving):
     # Allocate goal position value into byte array
     param_goal_position_6 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_6)), DXL_HIBYTE(DXL_LOWORD(
         GoalPosition_6)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_6)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_6))]
@@ -220,23 +220,27 @@ def move_to():
         GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
     param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
         GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+    if status_moving:
+        print("Moving the arm")
+        servo.goal_send(servo.DXL_ID_6, param_goal_position_6)
+        servo.goal_send(servo.DXL_ID_3, param_goal_position_3)
+        servo.goal_send(servo.DXL_ID_1, param_goal_position_1)
+        servo.goal_send(servo.DXL_ID_2, param_goal_position_2)
+    else:
+        # Send goal to syncwrite storage
+        servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
+        servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
+        servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
+        servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
 
-    # Send goal to syncwrite storage
-    servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
-    servo.syncwrite_storage(servo.DXL_ID_1, param_goal_position_1)
-    servo.syncwrite_storage(servo.DXL_ID_2, param_goal_position_2)
-    servo.syncwrite_storage(servo.DXL_ID_3, param_goal_position_3)
+        # Syncwrite goal position
+        dxl_comm_result = servo.groupSyncWrite.txPacket()
 
-    # Syncwrite goal position
-    dxl_comm_result = servo.groupSyncWrite.txPacket()
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
 
-    if dxl_comm_result != COMM_SUCCESS:
-        print("%s" % servo.packetHandler.getTxRxResult(dxl_comm_result))
-    # elif dxl_error != 0:
-    #     print("%s" % packetHandler.getRxPacketError(dxl_error))
-
-    # Clear syncwrite parameter storage
-    servo.groupSyncWrite.clearParam()
+        # Clear syncwrite parameter storage
+        servo.groupSyncWrite.clearParam()
 
     while 1:
         # Read present position
@@ -289,6 +293,12 @@ if __name__ == '__main__':
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
 
+    # Go to home position 
+    servo.goal_send(servo.DXL_ID_6, 512)
+    servo.goal_send(servo.DXL_ID_3, 512)
+    servo.goal_send(servo.DXL_ID_1, 512)
+    servo.goal_send(servo.DXL_ID_2, 512)
+
     while 1:
         if args.user_input:
             # User input goal position
@@ -297,12 +307,12 @@ if __name__ == '__main__':
             GoalPosition_2_deg, GoalPosition_2 = user_input(2)
             GoalPosition_1_deg, GoalPosition_1 = user_input(1)
             
-            move_to()
+            move_to(True)       # Not syncwrite
 
         else:            
             if not testing:
+                # Drawing from input image
                 arr = drawer.draw()
-                arr=np.asarray(arr[900:])
                 print("Number of point to IK: {}".format(len(arr)))
 
                 # Factor x coordinate & y coordinate
@@ -323,25 +333,27 @@ if __name__ == '__main__':
                 Y-coordinate from image processing is always positive, 
                 "-15" offset to use second quadrant
                 '''
+                if(int(i[2])==H_move):
+                        status_move = True
+
                 if not testing:
+                    # Drawing from input image
                     x_coor = int(i[0])+10
                     y_coor = int(i[1])-15
-                    print("From Drawing for point {}:".format(index+1),i[0]+10-4, i[1]-15,i[2])
+                    print("From Drawing for point {}/{}:".format(index+1,len(arr)),i[0]+10-4, i[1]-15,i[2])
                     arr = ik.get_inverse(i[0]+10, i[1]-15,i[2])                # offset for end effector
 
-                # '''test'''
                 else:
                     x_coor = int(i[0])
                     y_coor = int(i[1])
+
                     print("From Drawing: ",i[0], i[1],i[2])
                     print("if-else value:",sqrt(i[0]**2 + i[1]**2) )
                     val = sqrt(i[0]**2 + i[1]**2)
                     offset = get_offset(val)
                     print("val: {0} offset:{1}".format(val,offset))
                     
-                    print(i)
                     arr = ik.get_inverse(i[0]+20, i[1],(i[2]))                # offset for end effector
-                '''test'''
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]
@@ -352,15 +364,17 @@ if __name__ == '__main__':
                 GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
                 GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
 
-                if (x_coor>min_X or x_coor<max_X and (y_coor>min_Y or y_coor<max_Y)):
-                    move_to()
+                if ((x_coor>min_X or x_coor<max_X) and (y_coor>min_Y or y_coor<max_Y)):
+                    move_to(status_move)
                 else:
                     warnings.warn('Exceed the Limit. Skip that point')
-                print("--- Delay ---")
+
+                print("--- Wait ---")
                 time.sleep(1.0)
                 print("--- Next ---")
 
             break
+
     print("Finished")
     play_sound()
     
