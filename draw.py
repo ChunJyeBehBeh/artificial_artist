@@ -154,7 +154,7 @@ def main():
     arr = np.round(arr,1)
 
     print("Number of point to IK: {}".format(len(arr)))
-    # arr=arr[::10]             # skip every 10 numbers
+    arr=arr[::10]             # skip every 10 numbers
     _,idx = np.unique(arr, axis=0, return_index=True)
     arr = arr[np.sort(idx)]
     print("After F Number of point to IK: {}".format(len(arr)))
