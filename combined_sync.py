@@ -12,13 +12,12 @@ from math import sqrt
 import ik as ik
 from draw import *
 from dynamixel_sdk import *  # Uses Dynamixel SDK library
-from play_sound import *
+# from play_sound import *
 
 # Parameters for Program Drawing
 H_move =  2+4
 H_draw = -2.7+4
 filename = "Image/circle1.png"
-# filename = "Image/result.jpg"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -67,6 +66,7 @@ def get_offset(val):
     else:
         offset = 0
     return offset
+
 def program_input(value):
     value = float(value)
     return value, int(value / 300 * 1023)
@@ -220,6 +220,7 @@ def move_to(status_moving):
         GoalPosition_2)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_2)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_2))]
     param_goal_position_3 = [DXL_LOBYTE(DXL_LOWORD(GoalPosition_3)), DXL_HIBYTE(DXL_LOWORD(
         GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
+    
     if status_moving:
         print("Moving the arm")
         servo.goal_send(servo.DXL_ID_6, param_goal_position_6)
@@ -280,7 +281,7 @@ if __name__ == '__main__':
     servo.enable_servo_torque(servo.DXL_ID_2)
     servo.enable_servo_torque(servo.DXL_ID_3)
 
-    # Read Pos of Servo
+    # Read Pos of Servo [Useless, pending to delete]
     dxl6_present_position, _, _ = servo.read_pos(servo.DXL_ID_6)
     dxl1_present_position, _, _ = servo.read_pos(servo.DXL_ID_1)
     dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
@@ -341,19 +342,18 @@ if __name__ == '__main__':
                     x_coor = int(i[0])+10
                     y_coor = int(i[1])-15
                     print("From Drawing for point {}/{}:".format(index+1,len(arr)),i[0]+10-4, i[1]-15,i[2])
-                    arr = ik.get_inverse(i[0]+10, i[1]-15,i[2])                # offset for end effector
+                    arr = ik.get_inverse(i[0]+10, i[1]-15,i[2])             # offset for end effector
 
                 else:
                     x_coor = int(i[0])
                     y_coor = int(i[1])
 
                     print("From Drawing: ",i[0], i[1],i[2])
-                    print("if-else value:",sqrt(i[0]**2 + i[1]**2) )
                     val = sqrt(i[0]**2 + i[1]**2)
                     offset = get_offset(val)
                     print("val: {0} offset:{1}".format(val,offset))
                     
-                    arr = ik.get_inverse(i[0]+20, i[1],(i[2]))                # offset for end effector
+                    arr = ik.get_inverse(i[0], i[1],(i[2]))                # offset for end effector
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]
@@ -376,7 +376,7 @@ if __name__ == '__main__':
             break
 
     print("Finished")
-    play_sound()
+    # play_sound()
     
     # Disable Dynamixel Torque
     servo.disable_servo_torque(servo.DXL_ID_6)

@@ -4,8 +4,6 @@ import time
 import cv2
 import numpy as np
 
-import matplotlib.pyplot as plt 
-
 class Drawer(object):
     """Instance of this class find the best path for inverse kinematics
     
@@ -39,27 +37,6 @@ class Drawer(object):
         self.display = display
         # Read image from path in grayscale
         self.arr = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        (h, w) = self.arr.shape[:2]
-       
-        (cX, cY) = (w / 2, h / 2)
-
-        # grab the rotation matrix (applying the negative of the
-        # angle to rotate clockwise), then grab the sine and cosine
-        # (i.e., the rotation components of the matrix)
-        M = cv2.getRotationMatrix2D((cX, cY), 90, 1.0)
-        cos = np.abs(M[0, 0])
-        sin = np.abs(M[0, 1])
-        
-        # compute the new bounding dimensions of the image
-        nW = int((h * sin) + (w * cos))
-        nH = int((h * cos) + (w * sin))
-
-        # adjust the rotation matrix to take into account translation
-        M[0, 2] += (nW / 2) - cX
-        M[1, 2] += (nH / 2) - cY
-        
-        # perform the actual rotation and return the image
-        self.arr = cv2.warpAffine(self.arr, M, (nW, nH))
 
         # Convert gray pixels into black
         self.arr[self.arr < 150] = 0
@@ -69,9 +46,11 @@ class Drawer(object):
 
     def findPathUtils(self, y, x):
         """Recursively (Depth-first search approach) visit remaining pixels.
+
         # Arguments:
             y: row index (height) of pixel
             x: column index (width) of pixel
+
         # Return:
             None
         """
@@ -103,8 +82,10 @@ class Drawer(object):
     def findPath(self):
         """Find the path (to-be-drawn pixels coordinates in specific order) that optimize
         inverse kinematics computation.
+
         # Arguments:
             None
+
         # Return:
             None
         """
@@ -145,27 +126,20 @@ def main():
     drawer.findPath()
     arr = drawer.draw()
     arr=np.asarray(arr)         # <type 'numpy.ndarray'>
-
+    print("Number of point to IK: {}".format(len(arr)))
     # Factor x coordinate & y coordinate
     for i in arr:
         i[0] = i[0]*0.08
         i[1] = i[1]*0.05
-    arr = np.round(arr,1)
-    
-    print("Number of point to IK: {}".format(len(arr)))
-    # arr=arr[::10]             # skip every 10 numbers
-    _,idx = np.unique(arr, axis=0, return_index=True)
-    arr = arr[np.sort(idx)]
-    print("After F Number of point to IK: {}".format(len(arr)))
-
-    y=[]
-    x=[]
-    for i in arr:
-        y.append(i[0])
-        x.append(i[1])
-    plt.title('Output Points forom Drawing')
-    plt.scatter(y, x)
-    plt.show()
+    arr = np.round(arr,3)
+    arr = arr.tolist()
+    print(arr)
+    # print("Number of point to IK: {}".format(len(arr)))
+    # # arr=arr[::10]             # skip every 10 numbers
+    # _,idx = np.unique(arr, axis=0, return_index=True)
+    # arr = arr[np.sort(idx)]
+    # print(arr)
+    # print("After F Number of point to IK: {}".format(len(arr)))
 
 if __name__ == "__main__":
     main()
