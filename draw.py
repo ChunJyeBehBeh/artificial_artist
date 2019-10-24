@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 import matplotlib.pyplot as plt 
+from mpl_toolkits.mplot3d import Axes3D
 
 class Drawer(object):
     """Instance of this class find the best path for inverse kinematics
@@ -151,7 +152,7 @@ def main():
         i[0] = i[0]*0.08
         i[1] = i[1]*0.05
     arr = np.round(arr,1)
-    
+
     print("Number of point to IK: {}".format(len(arr)))
     # arr=arr[::10]             # skip every 10 numbers
     _,idx = np.unique(arr, axis=0, return_index=True)
@@ -160,11 +161,21 @@ def main():
 
     y=[]
     x=[]
+    z=[]
+
+    two_D_plot = False
     for i in arr:
         y.append(i[0])
         x.append(i[1])
-    plt.title('Output Points forom Drawing')
-    plt.scatter(y, x)
+        z.append(i[2])
+
+    if two_D_plot:
+        plt.title('Output Points forom Drawing')
+        plt.scatter(y, x)
+    else:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(arr[:,1],arr[:,0],arr[:,2])
     plt.show()
 
 if __name__ == "__main__":
