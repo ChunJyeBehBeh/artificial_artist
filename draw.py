@@ -138,7 +138,7 @@ class Drawer(object):
                 if key == 27: # If ESC is pressed, exit loop
                     cv2.destroyAllWindows()
                     break
-            cv2.imwrite("abc.jpg",self.arr)
+            cv2.imwrite("output.jpg",self.arr)
         return self.path 
 
 def main():
