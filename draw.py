@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
 
+from skip import skip
+
 class Drawer(object):
     """Instance of this class find the best path for inverse kinematics
     
@@ -140,8 +142,8 @@ class Drawer(object):
         return self.path 
 
 def main():
-    filename = "Image/circle1.png"
-    # filename = "Image/Love.png"
+    # filename = "Image/result.jpg"
+    filename = "Image/abc.jpeg"
     drawer = Drawer(filename, 0.1,0.9,False)
     drawer.findPath()
     arr = drawer.draw()
@@ -154,16 +156,43 @@ def main():
     arr = np.round(arr,1)
 
     print("Number of point to IK: {}".format(len(arr)))
-    arr=arr[::10]             # skip every 10 numbers
-    _,idx = np.unique(arr, axis=0, return_index=True)
-    arr = arr[np.sort(idx)]
+
+    arr = arr.tolist()
+    
+    arr = skip(arr,drawer.h_move)
+    arr=np.asarray(arr)
+
+    '''Beh: There are some issues at the starting point
+    reject=[]
+    counter = 0
+    for index,i in enumerate(arr):
+        if i[2]==drawer.h_move:
+            print("test")
+            # counter=0
+        else:
+            # print(counter)
+            counter+=1
+            if(counter!=10 and (arr[index+1])[2]!=drawer.h_move):
+                reject.append(index)
+            else:
+                # print("keep")
+                counter=0
+    arr=np.asarray(arr)
+    arr=np.delete(arr,reject,axis=0)
+    '''
+    
     print("After F Number of point to IK: {}".format(len(arr)))
 
     y=[]
     x=[]
     z=[]
+    # test
+    # arr=[[0,0,0],[0,0,9],[1,1,9],[1,1,0],[2,2,0],[3,3,0],[3,3,9]]
+    # arr=np.asarray(arr) 
+    # test
 
     two_D_plot = False
+
     for i in arr:
         y.append(i[0])
         x.append(i[1])
