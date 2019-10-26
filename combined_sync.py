@@ -12,12 +12,14 @@ from math import sqrt
 import ik as ik
 from draw import *
 from dynamixel_sdk import *  # Uses Dynamixel SDK library
+from skip import skip
+ 
 # from play_sound import *
 
 # Parameters for Program Drawing
-H_move =  2+4
-H_draw = -2.7+4
-filename = "Image/circle1.png"
+H_move = 8.0                   # variable + offset ->> 2+4
+H_draw = 2.1                 # variable + offset ->> -2.3+4
+filename = "Image/untitled.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -222,11 +224,10 @@ def move_to(status_moving):
         GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
     
     if status_moving:
-        print("Moving the arm")
-        servo.goal_send(servo.DXL_ID_6, param_goal_position_6)
-        servo.goal_send(servo.DXL_ID_3, param_goal_position_3)
-        servo.goal_send(servo.DXL_ID_1, param_goal_position_1)
-        servo.goal_send(servo.DXL_ID_2, param_goal_position_2)
+        servo.goal_send(servo.DXL_ID_6, GoalPosition_6)
+        servo.goal_send(servo.DXL_ID_3, GoalPosition_3)
+        servo.goal_send(servo.DXL_ID_1, GoalPosition_1)
+        servo.goal_send(servo.DXL_ID_2, GoalPosition_2)
     else:
         # Send goal to syncwrite storage
         servo.syncwrite_storage(servo.DXL_ID_6, param_goal_position_6)
@@ -295,10 +296,10 @@ if __name__ == '__main__':
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
 
     # Go to home position 
-    servo.goal_send(servo.DXL_ID_6, 512)
-    servo.goal_send(servo.DXL_ID_3, 512)
-    servo.goal_send(servo.DXL_ID_1, 512)
-    servo.goal_send(servo.DXL_ID_2, 512)
+    GoalPosition_3_deg, GoalPosition_3=program_input(150)
+    GoalPosition_1 = GoalPosition_6 = GoalPosition_2 = GoalPosition_3
+    GoalPosition_1_deg = GoalPosition_6_deg = GoalPosition_2_deg = GoalPosition_3_deg
+    move_to(True)
 
     while 1:
         if args.user_input:
@@ -312,19 +313,24 @@ if __name__ == '__main__':
 
         else:            
             if not testing:
+                print("start drawing")
                 # Drawing from input image
                 arr = drawer.draw()
                 print("Number of point to IK: {}".format(len(arr)))
+                arr=np.asarray(arr)
 
                 # Factor x coordinate & y coordinate
                 for i in arr:
                     i[0] = i[0]*0.05
                     i[1] = i[1]*0.05
 
-                # arr = np.round(arr,1)             # skip every 10 numbers
-                # _,idx = np.unique(arr[:,0], axis=0, return_index=True)
-                # arr = arr[np.sort(idx)]
-                # print("After Filtered, Number of point to IK: {}".format(len(arr)))
+                arr = np.round(arr,1)                
+
+                arr = arr.tolist() 
+                arr = skip(arr,drawer.h_move,drawer.h_draw)
+                print("After F Number of point to IK: {}".format(len(arr)))
+                arr=np.asarray(arr)
+
             else:
                 print("Testing")
                 arr = [[10,0,0],[11,0,0],[12,0,0],[13,0,0],[14,0,0],[15,0,0]]
@@ -334,15 +340,17 @@ if __name__ == '__main__':
                 Y-coordinate from image processing is always positive, 
                 "-15" offset to use second quadrant
                 '''
-                if(int(i[2])==H_move):
-                        status_move = True
+                if(int(i[2])==int(H_move)):
+                    print("Moving State")
+                    status_move = True
 
                 if not testing:
                     # Drawing from input image
+                    print("Start sending the point")
                     x_coor = int(i[0])+10
                     y_coor = int(i[1])-15
                     print("From Drawing for point {}/{}:".format(index+1,len(arr)),i[0]+10-4, i[1]-15,i[2])
-                    arr = ik.get_inverse(i[0]+10, i[1]-15,i[2])             # offset for end effector
+                    arr = ik.get_inverse(i[1]+10, i[0]-15,i[2])             # offset for end effector
 
                 else:
                     x_coor = int(i[0])
@@ -371,7 +379,6 @@ if __name__ == '__main__':
 
                 print("--- Wait ---")
                 time.sleep(1.0)
-                print("--- Next ---")
 
             break
 

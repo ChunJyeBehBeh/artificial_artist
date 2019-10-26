@@ -142,16 +142,18 @@ class Drawer(object):
         return self.path 
 
 def main():
-    # filename = "Image/result.jpg"
-    filename = "Image/abc.jpeg"
-    drawer = Drawer(filename, 0.1,0.9,False)
+    H_move = 6
+    H_draw = -1.7
+    filename = "Image/untitled.png"
+    # filename = "Image/abc.jpeg"
+    drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
     arr = drawer.draw()
     arr=np.asarray(arr)         # <type 'numpy.ndarray'>
 
     # Factor x coordinate & y coordinate
     for i in arr:
-        i[0] = i[0]*0.08
+        i[0] = i[0]*0.05
         i[1] = i[1]*0.05
     arr = np.round(arr,1)
 
@@ -159,52 +161,28 @@ def main():
 
     arr = arr.tolist()
     
-    arr = skip(arr,drawer.h_move)
+    arr = skip(arr,drawer.h_move,drawer.h_draw)
     arr=np.asarray(arr)
-
-    '''Beh: There are some issues at the starting point
-    # Ideally is h_move->h_draw ..... h_draw -> h_move
-    # Another idea to further reduce the point
-    # If only one point between h_move, actually we can just remove that stupid lonely point
-    # h_move->h_draw->h_move  ===> h_move->h_move  
-          
-    reject=[]
-    counter = 0
-    for index,i in enumerate(arr):
-        if i[2]==drawer.h_move:
-            print("test")
-        else:
-            # print(counter)
-            counter+=1                      # Issue that I mentioned yesterday, the ending part issue
-            if(counter!=10 and (arr[index+1])[2]!=drawer.h_move):
-                reject.append(index)        # save the index so that can use the np.deleted() function
-            else:
-                # print("keep")
-                counter=0                   # keep the tenth point and reset the counter
-    arr=np.asarray(arr)                     # convert list to array so that can use np.delete()
-    arr=np.delete(arr,reject,axis=0)        # (original array, index that need to be deleted, axis)
-    '''
-    
     print("After F Number of point to IK: {}".format(len(arr)))
 
     y=[]
     x=[]
     z=[]
-    # test
-    # arr=[[0,0,0],[0,0,9],[1,1,9],[1,1,0],[2,2,0],[3,3,0],[3,3,9]]
-    # arr=np.asarray(arr) 
-    # test
 
-    two_D_plot = False
+    two_D_plot = True
 
     for i in arr:
         y.append(i[0])
-        x.append(i[1])
+        x.append(-i[1])         # flip the output in horizontal axis
         z.append(i[2])
 
+    max_y = max(y)
+    min_y = min(y)
+    print("Max: {} Min: {} Offset: {}.".format(max_y,min_y,(max_y+min_y)/2))
     if two_D_plot:
         plt.title('Output Points forom Drawing')
-        plt.scatter(y, x)
+        plt.scatter([i-(max_y+min_y)/2 for i in y], x)
+        # plt.scatter(y, x)
     else:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
