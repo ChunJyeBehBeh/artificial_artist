@@ -15,12 +15,12 @@ Robotics Arm Drawing Bot
     'python combined_write.py --user_input'
 
 ## Things to be done:
-##### 1. image from judges
-##### 2. fix the pen
-##### 3. colour paper to decorate the base
-##### 4. Test the workspace and minimum wait time between points with power suppy
-##### 5. Further reduce the points, push the limit
-##### 6. Estimate the time taken for 100 points
-##### 7. Presentation & Report
+1. image from judges
+2. fix the pen
+3. colour paper to decorate the base
+4. Test the workspace and minimum wait time between points with power suppy
+5. Further reduce the points, push the limit
+6. Estimate the time taken for 100 points
+7. Presentation & Report
 
 
