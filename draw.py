@@ -140,11 +140,51 @@ class Drawer(object):
                     break
             cv2.imwrite("output.jpg",self.arr)
         return self.path 
+        
+def plot(arr,plot,plot_2D):
+    '''
+    arr: array that need to be plotted out
+    plot: set True to display the ploy
+    plot_2D: set True to plot the 2D diagram, else 3D
+    '''
+    y=[]
+    x=[]
+    z=[]
+
+    two_D_plot = plot_2D
+
+    for i in arr:
+        y.append(i[0])
+        x.append(i[1])         
+        z.append(i[2])
+
+    max_y = max(y)
+    min_y = min(y)
+    max_x = max(x)
+    min_x = min(x)
+    print("In x-axis, Max: {} Min: {} Offset: {}.".format(max_x,min_x,(max_x+min_x)/2))
+    print("In y-axis, Max: {} Min: {} Offset: {}.".format(max_y,min_y,(max_y+min_y)/2))
+    
+    if plot:
+        if two_D_plot:
+            plt.title('Output Points forom Drawing')
+            plt.scatter([i-(max_y+min_y)/2 for i in y], [i+(max_x+min_x)/2 for i in x])
+            # plt.scatter(y, x)
+        else:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot(arr[:,1],arr[:,0],arr[:,2])
+            ax.scatter(arr[0,1],arr[0,0],arr[0,2],marker="o")       # Starting Point
+            ax.scatter(arr[-1,1],arr[-1,0],arr[-1,2],marker="x")    # Ending Point
+        plt.show()
+
+    return (max_y+min_y)/2,(max_x+min_x)/2
+
 
 def main():
     H_move = 6
     H_draw = -1.7
-    filename = "Image/untitled.png"
+    filename = "Image/abc.jpeg"
     # filename = "Image/abc.jpeg"
     drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
@@ -162,32 +202,28 @@ def main():
     arr = arr.tolist()
     
     arr = skip(arr,drawer.h_move,drawer.h_draw)
+    print(arr)
     arr=np.asarray(arr)
     print("After F Number of point to IK: {}".format(len(arr)))
 
-    y=[]
-    x=[]
-    z=[]
+    '''
+    Workspace Region
+    '''
+    # min_X = 10
+    # max_X = 30
+    # min_Y =-15
+    # max_Y = 15
+    # arr = [[min_X,max_Y,H_move],
+    #             [min_X,max_Y,H_draw],
+    #             [min_X,min_Y,H_draw],
+    #             [max_X,min_Y,H_draw],
+    #             [max_X,max_Y,H_draw],
+    #             [min_X,max_Y,H_draw],
+    #             [min_X,max_Y,H_move]]
+    # arr=np.asarray(arr)
 
-    two_D_plot = True
-
-    for i in arr:
-        y.append(i[0])
-        x.append(-i[1])         # flip the output in horizontal axis
-        z.append(i[2])
-
-    max_y = max(y)
-    min_y = min(y)
-    print("Max: {} Min: {} Offset: {}.".format(max_y,min_y,(max_y+min_y)/2))
-    if two_D_plot:
-        plt.title('Output Points forom Drawing')
-        plt.scatter([i-(max_y+min_y)/2 for i in y], x)
-        # plt.scatter(y, x)
-    else:
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot(arr[:,1],arr[:,0],arr[:,2])
-    plt.show()
+    plot(arr,True,True)         # set True to plot 2D graph
+    
 
 if __name__ == "__main__":
     main()

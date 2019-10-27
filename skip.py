@@ -1,5 +1,6 @@
-def skip(arr,height_move,height_draw):
+import numpy as np
 
+def skip(arr,height_move,height_draw):
     arr1 = [] #new array
 
     
@@ -30,6 +31,13 @@ def skip(arr,height_move,height_draw):
 
 if __name__ == "__main__":
     test=[[0,0,9],[0,0,0],[1,1,0],[1,0,0],[2,2,0],[3,3,0],[3,3,9]]
-    print(type(test))
-    output=skip(test,9,0)
-    print(output)
+    test=np.asarray(test)
+    for index,i in enumerate(test):
+        print("No. {}: {}".format(index,i))
+        if (index==0):
+            print(i)
+        else:
+            print(i[2]==9 or int(test[index-1][2])==9)
+    # print(type(test))
+    # output=skip(test,9,0)
+    # print(output)

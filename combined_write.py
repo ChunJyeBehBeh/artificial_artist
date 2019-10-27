@@ -19,9 +19,10 @@ from play_sound import *
 '''
 Beh: check the best H_draw for the workspace
 '''
+# Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/untitled.png"
+filename = "Image/abc.jpeg"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -336,6 +337,7 @@ class Dynamixel():
         else:
             print("Dynamixel#%d speed has been set: %s" % (id, speed))
             return 1
+
     def enable_servo_torque(self, id):
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler, id, self.ADDR_MX_TORQUE_ENABLE,
                                                                        self.TORQUE_ENABLE)
@@ -431,6 +433,65 @@ def move_to(status_moving):
                 print("arm is Blocked, breaking loop")
                 break
 
+def set_variable_speed():
+    # Read Pos of Servo
+    dxl6_present_position, _, _ = servo.read_pos(servo.DXL_ID_6)
+    dxl1_present_position, _, _ = servo.read_pos(servo.DXL_ID_1)
+    dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
+    dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
+    
+    diff3 = abs(GoalPosition_3-dxl3_present_position)
+    diff2 = abs(GoalPosition_2-dxl2_present_position)
+    diff1 = abs(GoalPosition_1-dxl1_present_position)
+    diff6 = abs(GoalPosition_6-dxl6_present_position)
+
+    reduct = 1
+    print("Angle difference is %s and reduction value is %s" %([diff1,diff2,diff3,diff6],reduct))
+    if diff1 > 100:
+        print("apply speed limit 1")
+        diff2 = diff2 * reduct * 100/diff1
+        diff3 = diff3 * reduct * 100/diff1
+        diff6 = diff6 * reduct * 100/diff1
+        diff1 = diff1 * reduct * 100/diff1
+    if diff2 > 100:
+        print("apply speed limit 2")
+        diff1 = diff1 * reduct * 100/diff2
+        diff3 = diff3 * reduct * 100/diff2
+        diff6 = diff6 * reduct * 100/diff2
+        diff2 = diff2 * reduct * 100/diff2
+    if diff3 > 100:
+        print("apply speed limit 3")
+        diff1 = diff1 * reduct * 100/diff3
+        diff2 = diff2 * reduct * 100/diff3
+        diff6 = diff6 * reduct * 100/diff3
+        diff3 = diff3 * reduct * 100/diff3
+    if diff6 > 100:
+        print("apply speed limit 4")
+        diff1 = diff1 * reduct * 100/diff6
+        diff2 = diff2 * reduct * 100/diff6
+        diff3 = diff3 * reduct * 100/diff6
+        diff6 = diff6 * reduct * 100/diff6
+
+    diff1 = int(diff1)
+    diff2 = int(diff2)
+    diff3 = int(diff3)
+    diff6 = int(diff6)
+
+    if (diff1 == 0):
+        diff1 = 1
+    if (diff2 == 0):
+        diff2 = 1
+    if (diff3 == 0):
+        diff3 = 1
+    if (diff6 == 0):
+        diff6 = 1
+
+    servo.set_joint_speed(servo.DXL_ID_1,(diff1))
+    servo.set_joint_speed(servo.DXL_ID_2,(diff2))
+    servo.set_joint_speed(servo.DXL_ID_3,(diff3))
+    servo.set_joint_speed(servo.DXL_ID_6,(diff6))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dynamixel Servo Control')
     parser.add_argument('--user_input', action='store_false', help='ignore this argument in order to ask goal from program')
@@ -444,22 +505,12 @@ if __name__ == '__main__':
     servo.enable_servo_torque(servo.DXL_ID_2)
     servo.enable_servo_torque(servo.DXL_ID_3)
 
-    # Read Pos of Servo [Useless, pending to delete]
-    dxl6_present_position, _, _ = servo.read_pos(servo.DXL_ID_6)
-    dxl1_present_position, _, _ = servo.read_pos(servo.DXL_ID_1)
-    dxl2_present_position, _, _ = servo.read_pos(servo.DXL_ID_2)
-    dxl3_present_position, _, _ = servo.read_pos(servo.DXL_ID_3)
-
     # Set Speed of Servo
     joint_speed = 20
     servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
-    # time.sleep(2.0)
 
     # Go to home position 
     GoalPosition_3_deg, GoalPosition_3=program_input(150)
@@ -474,7 +525,9 @@ if __name__ == '__main__':
             GoalPosition_6_deg, GoalPosition_6 = user_input(6)
             GoalPosition_2_deg, GoalPosition_2 = user_input(2)
             GoalPosition_1_deg, GoalPosition_1 = user_input(1)
-            
+
+            set_variable_speed()
+
             move_to(True)       # True: Not syncwrite
 
         else:            
@@ -512,26 +565,22 @@ if __name__ == '__main__':
                 [min_X,max_Y,H_move]]
 
             size_arr = len(arr)
-            arr_store = arr    
+            arr_store = arr  
+
             for index, i in enumerate(arr):
                 '''
                 Beh: Update this offset
-                Y-coordinate from image processing is always positive, 
-                "-15" offset to use second quadrant
                 '''
                 if(int(i[2])==int(H_move) or int(arr_store[index-1][2])==int(H_move)):
-                    print("!!!!!!!!!!!Moving State!!!!!!!!!!!!!")
                     status_move = True
                 else:
                     status_move = False
+                    
                 print("Status_move :{}".format(status_move))
 
                 if not testing:
                     # Drawing from input image
                     print("Start sending the point")
-                    '''
-                    Beh: change the offset here
-                    '''
                     offset_x = 10
                     offset_y = 15
                     x_coor = int(i[0])+ offset_x
@@ -558,6 +607,8 @@ if __name__ == '__main__':
                 GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
                 GoalPosition_2_deg, GoalPosition_2 = program_input(arr[2])
                 GoalPosition_1_deg, GoalPosition_1 = program_input(arr[3])
+
+                set_variable_speed()
 
                 if not testing:
                     if ((x_coor>min_X or x_coor<max_X) and (y_coor>min_Y or y_coor<max_Y)):
