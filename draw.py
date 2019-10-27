@@ -9,6 +9,11 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from skip import skip
 
+'''
+Canny Edge Detector: http://bigwww.epfl.ch/demo/ip/demos/edgeDetector/
+Invert the color: https://pinetools.com/invert-image-colors
+'''
+
 class Drawer(object):
     """Instance of this class find the best path for inverse kinematics
     
@@ -184,7 +189,7 @@ def plot(arr,plot,plot_2D):
 def main():
     H_move = 6
     H_draw = -1.7
-    filename = "Image/abc.jpeg"
+    filename = "Image/image.png"
     # filename = "Image/abc.jpeg"
     drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
@@ -202,7 +207,7 @@ def main():
     arr = arr.tolist()
     
     arr = skip(arr,drawer.h_move,drawer.h_draw)
-    print(arr)
+    # print(arr)
     arr=np.asarray(arr)
     print("After F Number of point to IK: {}".format(len(arr)))
 
