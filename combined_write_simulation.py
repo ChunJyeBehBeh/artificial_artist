@@ -11,7 +11,8 @@ import ctypes
 from math import sqrt
 import ik as ik
 from draw import *
-from dynamixel_sdk import *  # Uses Dynamixel SDK library
+import sys
+# from dynamixel_sdk import *  # Uses Dynamixel SDK library
 from skip import skip
 # from play_sound import *
 
@@ -82,6 +83,11 @@ s9 = sg.Segment(2,1.00,ex,0)
 
 #Organize segments into a list, order matters!
 segments = [s1,s2,s3,s4,s5,s6,s7,s8,s9]
+#Organize zero config angles, order matters!
+Q = [0,0,0,0,0,0,0,0,0]
+
+#construct robot arm from segment list and zero config list
+r1 = ra.RobotArm(segments,Q)
 
 if os.name == 'nt':
     import msvcrt
@@ -106,9 +112,7 @@ else:
         return ch
 
 def user_input(id):
-    val = float(input(
-        "Enter Goal Position for Motor {} in degrees (Range is 0 to 300 degrees; 150 degrees is neutral position):".format(
-            id)))
+    val = float(input("Enter Goal Position for Motor {} in degrees (Range is 0 to 300 degrees; 150 degrees is neutral position):".format(id)))
     return val, int(val / 300 * 1023)
 
 def get_offset(val):
@@ -142,8 +146,11 @@ if __name__ == '__main__':
             GoalPosition_2_rad = np.radians(GoalPosition_2_deg)
             GoalPosition_1_rad = np.radians(GoalPosition_1_deg)
             
-            Q = [GoalPosition_3_rad,0,GoalPosition_6_rad,0,0,GoalPosition_2_rad,0,GoalPosition_1_rad,0]
-            r1 = ra.RobotArm(segments,Q)
+            input_angle = [GoalPosition_3_rad,0,GoalPosition_6_rad,0,0,GoalPosition_2_rad,0,GoalPosition_1_rad,0]
+            r1.zeroC = input_angle
+            r1.update(segments)
+            r1.drawArm()
+
         else:            
             if not testing:
                 print("Start drawing")
@@ -226,6 +233,7 @@ if __name__ == '__main__':
                 GoalPosition_1_rad = np.radians(GoalPosition_1_deg)
                 
                 Q = [GoalPosition_3_rad,0,GoalPosition_6_rad,0,0,GoalPosition_2_rad,0,GoalPosition_1_rad,0]
+                r1 = ra.RobotArm(segments,Q)
 
                 if not testing:
                     if ((x_coor>min_X or x_coor<max_X) and (y_coor>min_Y or y_coor<max_Y)):
