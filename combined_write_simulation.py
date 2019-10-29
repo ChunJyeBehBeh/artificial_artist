@@ -17,7 +17,7 @@ from skip import skip
 # from play_sound import *
 
 # "D:/Robotics/artificial_artist/Robotics3DSimulations"
-sys.path.append("../artificial_artist/Robotics3DSimulations")
+sys.path.append("../artificial_artist/simulation")
 
 import Segment as sg
 import RobotArm as ra
