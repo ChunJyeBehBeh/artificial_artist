@@ -22,7 +22,7 @@ Beh: check the best H_draw for the workspace
 # Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/abc.jpeg"
+filename = "Image/test.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -128,7 +128,6 @@ class Dynamixel():
         # Set the protocol version
         # Get methods and members of Protocol1PacketHandler or Protocol2PacketHandler
         self.packetHandler = PacketHandler(self.PROTOCOL_VERSION)
-        # self.packetHandler = Protocol1PacketHandler()
 
         # Initialize Groupsyncwrite instance
         self.groupSyncWrite = GroupSyncWrite(self.portHandler, self.packetHandler,
@@ -162,168 +161,168 @@ class Dynamixel():
         return int(speed)
 
     # Function to read present position
-    # def read_pos(self, id):
-    #     dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, id,
-    #                                                                                         self.ADDR_MX_PRESENT_POSITION)
-    #     if dxl_comm_result != COMM_SUCCESS:
-    #         # [TxRxResult] Incorrect status packet!
-    #         print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-    #     elif dxl_error != 0:
-    #         print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+    def read_pos(self, id):
+        dxl_present_position, dxl_comm_result, dxl_error = self.packetHandler.read2ByteTxRx(self.portHandler, id,
+                                                                                            self.ADDR_MX_PRESENT_POSITION)
+        if dxl_comm_result != COMM_SUCCESS:
+            # [TxRxResult] Incorrect status packet!
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-    #     return dxl_present_position, dxl_comm_result, dxl_error
+        return dxl_present_position, dxl_comm_result, dxl_error
 
     # Function to read present angle for motor #id, output radians
     # Fix some error in library for read4ByteTxRx
-    def read4ByteTxRx(self, port, dxl_id, address):
-        data, result, error = self.readTxRx(port, dxl_id, address, 4)
-        data_read = DXL_MAKEDWORD(DXL_MAKEWORD(data[0], data[1]),
-                                    DXL_MAKEWORD(data[2], data[3])) if (result == COMM_SUCCESS) else 0
-        return data_read, result, error
+    # def read4ByteTxRx(self, port, dxl_id, address):
+    #     data, result, error = self.readTxRx(port, dxl_id, address, 4)
+    #     data_read = DXL_MAKEDWORD(DXL_MAKEWORD(data[0], data[1]),
+    #                                 DXL_MAKEWORD(data[2], data[3])) if (result == COMM_SUCCESS) else 0
+    #     return data_read, result, error
 
-    def readTxRx(self, port, dxl_id, address, length):
-        PKT_PARAMETER0 = 5
-        txpacket = [0] * 8
-        data = []
+    # def readTxRx(self, port, dxl_id, address, length):
+    #     PKT_PARAMETER0 = 5
+    #     txpacket = [0] * 8
+    #     data = []
 
-        if dxl_id >= BROADCAST_ID:
-            return data, COMM_NOT_AVAILABLE, 0
+    #     if dxl_id >= BROADCAST_ID:
+    #         return data, COMM_NOT_AVAILABLE, 0
 
-        txpacket[self.PKT_ID] = dxl_id
-        txpacket[self.PKT_LENGTH] = 4
-        txpacket[self.PKT_INSTRUCTION] = INST_READ
-        txpacket[self.PKT_PARAMETER0 + 0] = address
-        txpacket[self.PKT_PARAMETER0 + 1] = length
+    #     txpacket[self.PKT_ID] = dxl_id
+    #     txpacket[self.PKT_LENGTH] = 4
+    #     txpacket[self.PKT_INSTRUCTION] = INST_READ
+    #     txpacket[self.PKT_PARAMETER0 + 0] = address
+    #     txpacket[self.PKT_PARAMETER0 + 1] = length
 
-        rxpacket, result, error = self.txRxPacket(port, txpacket)
-        if result == COMM_SUCCESS:
-            error = rxpacket[self.PKT_ERROR]
+    #     rxpacket, result, error = self.txRxPacket(port, txpacket)
+    #     if result == COMM_SUCCESS:
+    #         error = rxpacket[self.PKT_ERROR]
 
-            data.extend(rxpacket[PKT_PARAMETER0: PKT_PARAMETER0 + length])
+    #         data.extend(rxpacket[PKT_PARAMETER0: PKT_PARAMETER0 + length])
 
-        return data, result, error
+    #     return data, result, error
 
-    def txRxPacket(self, port, txpacket):
-        rxpacket = None
-        error = 0
+    # def txRxPacket(self, port, txpacket):
+    #     rxpacket = None
+    #     error = 0
 
-        # tx packet
-        result = self.packetHandler.txPacket(port, txpacket)
-        if result != COMM_SUCCESS:
-            return rxpacket, result, error
+    #     # tx packet
+    #     result = self.packetHandler.txPacket(port, txpacket)
+    #     if result != COMM_SUCCESS:
+    #         return rxpacket, result, error
 
-        # (Instruction == BulkRead) == this function is not available.
-        if txpacket[self.PKT_INSTRUCTION] == INST_BULK_READ:
-            result = COMM_NOT_AVAILABLE
+    #     # (Instruction == BulkRead) == this function is not available.
+    #     if txpacket[self.PKT_INSTRUCTION] == INST_BULK_READ:
+    #         result = COMM_NOT_AVAILABLE
 
-        # (ID == Broadcast ID) == no need to wait for status packet or not available
-        if (txpacket[self.PKT_ID] == BROADCAST_ID):
-            port.is_using = False
-            return rxpacket, result, error
+    #     # (ID == Broadcast ID) == no need to wait for status packet or not available
+    #     if (txpacket[self.PKT_ID] == BROADCAST_ID):
+    #         port.is_using = False
+    #         return rxpacket, result, error
 
-        # set packet timeout
-        if txpacket[self.PKT_INSTRUCTION] == INST_READ:
-            port.setPacketTimeout(txpacket[self.PKT_PARAMETER0 + 1] + 6)
-        else:
-            port.setPacketTimeout(6)  # HEADER0 HEADER1 ID LENGTH ERROR CHECKSUM
+    #     # set packet timeout
+    #     if txpacket[self.PKT_INSTRUCTION] == INST_READ:
+    #         port.setPacketTimeout(txpacket[self.PKT_PARAMETER0 + 1] + 6)
+    #     else:
+    #         port.setPacketTimeout(6)  # HEADER0 HEADER1 ID LENGTH ERROR CHECKSUM
 
-        # rx packet
-        while True:
-            rxpacket, result = self.rxPacket(port)
-            if result != COMM_SUCCESS or txpacket[self.PKT_ID] == rxpacket[self.PKT_ID]:
-                break
+    #     # rx packet
+    #     while True:
+    #         rxpacket, result = self.rxPacket(port)
+    #         if result != COMM_SUCCESS or txpacket[self.PKT_ID] == rxpacket[self.PKT_ID]:
+    #             break
 
-        if result == COMM_SUCCESS and txpacket[self.PKT_ID] == rxpacket[self.PKT_ID]:
-            error = rxpacket[self.PKT_ERROR]
+    #     if result == COMM_SUCCESS and txpacket[self.PKT_ID] == rxpacket[self.PKT_ID]:
+    #         error = rxpacket[self.PKT_ERROR]
 
-        return rxpacket, result, error
+    #     return rxpacket, result, error
 
-    def rxPacket(self, port):
-        rxpacket = []
+    # def rxPacket(self, port):
+    #     rxpacket = []
 
-        result = COMM_TX_FAIL
-        checksum = 0
-        rx_length = 0
-        wait_length = 10  # minimum length (HEADER0 HEADER1 ID LENGTH ERROR CHKSUM)
-        # FIX: CHANGED 6 TO 10 for read_pos
+    #     result = COMM_TX_FAIL
+    #     checksum = 0
+    #     rx_length = 0
+    #     wait_length = 10  # minimum length (HEADER0 HEADER1 ID LENGTH ERROR CHKSUM)
+    #     # FIX: CHANGED 6 TO 10 for read_pos
 
-        while True:
-            rxpacket.extend(port.readPort(wait_length - rx_length))
-            rx_length = len(rxpacket)
-            if rx_length >= wait_length:
-                # find packet header
-                for idx in range(0, (rx_length - 1)):
-                    if (rxpacket[idx] == 0xFF) and (rxpacket[idx + 1] == 0xFF):
-                        break
+    #     while True:
+    #         rxpacket.extend(port.readPort(wait_length - rx_length))
+    #         rx_length = len(rxpacket)
+    #         if rx_length >= wait_length:
+    #             # find packet header
+    #             for idx in range(0, (rx_length - 1)):
+    #                 if (rxpacket[idx] == 0xFF) and (rxpacket[idx + 1] == 0xFF):
+    #                     break
 
-                if idx == 0:  # found at the beginning of the packet
-                    if (rxpacket[self.PKT_ID] > 0xFD) or (rxpacket[self.PKT_LENGTH] > RXPACKET_MAX_LEN) or (
-                            rxpacket[self.PKT_ERROR] > 0x7F):
-                        # unavailable ID or unavailable Length or unavailable Error
-                        # remove the first byte in the packet
-                        del rxpacket[0]
-                        rx_length -= 1
-                        continue
+    #             if idx == 0:  # found at the beginning of the packet
+    #                 if (rxpacket[self.PKT_ID] > 0xFD) or (rxpacket[self.PKT_LENGTH] > RXPACKET_MAX_LEN) or (
+    #                         rxpacket[self.PKT_ERROR] > 0x7F):
+    #                     # unavailable ID or unavailable Length or unavailable Error
+    #                     # remove the first byte in the packet
+    #                     del rxpacket[0]
+    #                     rx_length -= 1
+    #                     continue
 
-                    # re-calculate the exact length of the rx packet
-                    if wait_length != (rxpacket[self.PKT_LENGTH] + self.PKT_LENGTH + 1):
-                        wait_length = rxpacket[self.PKT_LENGTH] + self.PKT_LENGTH + 1
-                        continue
+    #                 # re-calculate the exact length of the rx packet
+    #                 if wait_length != (rxpacket[self.PKT_LENGTH] + self.PKT_LENGTH + 1):
+    #                     wait_length = rxpacket[self.PKT_LENGTH] + self.PKT_LENGTH + 1
+    #                     continue
 
-                    if rx_length < wait_length:
-                        # check timeout
-                        if port.isPacketTimeout():
-                            if rx_length == 0:
-                                result = COMM_RX_TIMEOUT
-                            else:
-                                result = COMM_RX_CORRUPT
-                            break
-                        else:
-                            continue
+    #                 if rx_length < wait_length:
+    #                     # check timeout
+    #                     if port.isPacketTimeout():
+    #                         if rx_length == 0:
+    #                             result = COMM_RX_TIMEOUT
+    #                         else:
+    #                             result = COMM_RX_CORRUPT
+    #                         break
+    #                     else:
+    #                         continue
 
-                    # calculate checksum
-                    for i in range(2, wait_length - 1):  # except header, checksum
-                        checksum += rxpacket[i]
-                    checksum = ~checksum & 0xFF
+    #                 # calculate checksum
+    #                 for i in range(2, wait_length - 1):  # except header, checksum
+    #                     checksum += rxpacket[i]
+    #                 checksum = ~checksum & 0xFF
 
-                    # verify checksum
-                    if rxpacket[wait_length - 1] == checksum:
-                        result = COMM_SUCCESS
-                    else:
-                        result = COMM_RX_CORRUPT
-                    break
+    #                 # verify checksum
+    #                 if rxpacket[wait_length - 1] == checksum:
+    #                     result = COMM_SUCCESS
+    #                 else:
+    #                     result = COMM_RX_CORRUPT
+    #                 break
 
-                else:
-                    # remove unnecessary packets
-                    del rxpacket[0: idx]
-                    rx_length -= idx
+    #             else:
+    #                 # remove unnecessary packets
+    #                 del rxpacket[0: idx]
+    #                 rx_length -= idx
 
-            else:
-                # check timeout
-                if port.isPacketTimeout():
-                    if rx_length == 0:
-                        result = COMM_RX_TIMEOUT
-                    else:
-                        result = COMM_RX_CORRUPT
-                    break
+    #         else:
+    #             # check timeout
+    #             if port.isPacketTimeout():
+    #                 if rx_length == 0:
+    #                     result = COMM_RX_TIMEOUT
+    #                 else:
+    #                     result = COMM_RX_CORRUPT
+    #                 break
 
-        port.is_using = False
+    #     port.is_using = False
 
-        #print "[RxPacket] %r" % rxpacket
+    #     #print "[RxPacket] %r" % rxpacket
 
-        return rxpacket, result
-    # end fix
+    #     return rxpacket, result
+    # # end fix
 
-    def read_pos(self, id):
-        dxl_present_position, dxl_comm_result, dxl_error = self.read4ByteTxRx(self.portHandler, id, self.ADDR_MX_PRESENT_POSITION)
-        if dxl_comm_result != COMM_SUCCESS:
-            return self.read_pos(id)
-        elif dxl_error != 0:
-            return self.read_pos(id)
-        else:
-            if(dxl_present_position > 1023 or dxl_present_position<0):
-                return self.read_pos(id)
-            return dxl_present_position, dxl_comm_result, dxl_error
+    # def read_pos(self, id):
+    #     dxl_present_position, dxl_comm_result, dxl_error = self.read4ByteTxRx(self.portHandler, id, self.ADDR_MX_PRESENT_POSITION)
+    #     if dxl_comm_result != COMM_SUCCESS:
+    #         return self.read_pos(id)
+    #     elif dxl_error != 0:
+    #         return self.read_pos(id)
+    #     else:
+    #         if(dxl_present_position > 1023 or dxl_present_position<0):
+    #             return self.read_pos(id)
+    #         return dxl_present_position, dxl_comm_result, dxl_error
 
     # Set servo move speed
     def set_joint_speed(self, id, speed):
@@ -424,14 +423,19 @@ def move_to(status_moving):
             servo.print_status(servo.DXL_ID_2, GoalPosition_2_deg, dxl_present_position_2_deg)
             servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
 
+        status_6 = (abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD)
+        print(" Servo 6 Status: {}".format(status_6))
+        print(GoalPosition_6)
+        print(dxl_present_position_6)
+        
         if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_2 - dxl_present_position_2) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_3 - dxl_present_position_3) <= servo.DXL_MOVING_STATUS_THRESHOLD)):
                 break
         elif time.time() - wait > 10:
-                print("arm is Blocked, breaking loop")
-                break
+            print("arm is Blocked, breaking loop")
+            break
 
 def set_variable_speed():
     # Read Pos of Servo
@@ -506,7 +510,7 @@ if __name__ == '__main__':
     servo.enable_servo_torque(servo.DXL_ID_3)
 
     # Set Speed of Servo
-    joint_speed = 20
+    joint_speed = 40
     servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
@@ -553,9 +557,6 @@ if __name__ == '__main__':
 
             else:
                 print("Testing")
-                '''
-                Beh: Draw a Square along the workspace (power suppy)
-                '''
                 arr = [[min_X,max_Y,H_move],
                 [min_X,max_Y,H_draw],
                 [min_X,min_Y,H_draw],
@@ -586,7 +587,7 @@ if __name__ == '__main__':
                     x_coor = int(i[0])+ offset_x
                     y_coor = int(i[1])-offset_y
                     print("From Drawing for point {}/{}:".format(index+1,size_arr),i[0]+10-4, i[1]-15,i[2])
-                    arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y,i[2])         
+                    arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y-5,i[2])         
 
                 else:
                     x_coor = int(i[0])
@@ -616,7 +617,7 @@ if __name__ == '__main__':
                     else:
                         warnings.warn('Exceed the Limit. Skip that point')
                 else:
-                    move_to(status_move)
+                    move_to(True)
 
                 print("--- Wait ---")
                 '''

@@ -173,7 +173,7 @@ def plot(arr,plot,plot_2D):
     if plot:
         if two_D_plot:
             plt.title('Output Points forom Drawing')
-            plt.scatter([i-(max_y+min_y)/2 for i in y], [i+(max_x+min_x)/2 for i in x])
+            plt.scatter([i-(max_y+min_y)/2 for i in y], [i+(max_x+min_x)/2+10 for i in x])
             # plt.scatter(y, x)
         else:
             fig = plt.figure()
@@ -189,8 +189,8 @@ def plot(arr,plot,plot_2D):
 def main():
     H_move = 6
     H_draw = -1.7
-    filename = "Image/image.png"
-    # filename = "Image/abc.jpeg"
+    # filename = "Image/image.png"
+    filename = "Image/test.png"
     drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
     arr = drawer.draw()

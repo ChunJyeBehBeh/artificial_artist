@@ -212,12 +212,13 @@ if __name__ == '__main__':
                 GoalPosition_2_rad = np.radians(GoalPosition_2_deg)
                 GoalPosition_1_rad = np.radians(GoalPosition_1_deg)
                 
-                Q = [GoalPosition_3_rad,0,GoalPosition_6_rad,0,0,GoalPosition_2_rad,0,GoalPosition_1_rad,0]
-                r1 = ra.RobotArm(segments,Q)
+                input_angle = [GoalPosition_3_rad,0,GoalPosition_6_rad,0,0,GoalPosition_2_rad,0,GoalPosition_1_rad,0]
+                r1.zeroC = input_angle
+                r1.update(segments)
 
                 if not testing:
                     if ((x_coor>min_X or x_coor<max_X) and (y_coor>min_Y or y_coor<max_Y)):
-                        r1 = ra.RobotArm(segments,Q)
+                        r1.drawArm()
                     else:
                         warnings.warn('Exceed the Limit. Skip that point')
                 else:

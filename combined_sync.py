@@ -21,7 +21,7 @@ Beh: check the best H_draw for the workspace
 '''
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/untitled.png"
+filename = "Image/test.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -453,13 +453,9 @@ if __name__ == '__main__':
     # Set Speed of Servo
     joint_speed = 20
     servo.set_joint_speed(servo.DXL_ID_6, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_3, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_2, joint_speed)
-    # time.sleep(2.0)
     servo.set_joint_speed(servo.DXL_ID_1, joint_speed)
-    # time.sleep(2.0)
 
     # Go to home position 
     GoalPosition_3_deg, GoalPosition_3=program_input(150)
@@ -537,7 +533,7 @@ if __name__ == '__main__':
                     x_coor = int(i[0])+ offset_x
                     y_coor = int(i[1])-offset_y
                     print("From Drawing for point {}/{}:".format(index+1,size_arr),i[0]+10-4, i[1]-15,i[2])
-                    arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y,i[2])         
+                    arr = ik.get_inverse(i[1]+offset_x+5, i[0]-offset_y,i[2])         
 
                 else:
                     x_coor = int(i[0])
@@ -561,7 +557,7 @@ if __name__ == '__main__':
 
                 if not testing:
                     if ((x_coor>min_X or x_coor<max_X) and (y_coor>min_Y or y_coor<max_Y)):
-                        move_to(True)
+                        move_to(status_move)
                     else:
                         warnings.warn('Exceed the Limit. Skip that point')
                 else:
