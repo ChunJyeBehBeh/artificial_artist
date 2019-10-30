@@ -22,7 +22,7 @@ Beh: check the best H_draw for the workspace
 # Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/test.png"
+filename = "Image/untitled.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -30,8 +30,8 @@ drawer.findPath()
 # Program Parameters for Dynamixel Servos
 print_param = True          # printing status of Dynamixel Servos
 testing = False
-min_X = 10
-max_X = 30
+min_X = 9
+max_X = 35
 min_Y =-15
 max_Y = 15
 
@@ -587,7 +587,7 @@ if __name__ == '__main__':
                     x_coor = int(i[0])+ offset_x
                     y_coor = int(i[1])-offset_y
                     print("From Drawing for point {}/{}:".format(index+1,size_arr),i[0]+10-4, i[1]-15,i[2])
-                    arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y-5,i[2])         
+                    arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y,i[2])         
 
                 else:
                     x_coor = int(i[0])
