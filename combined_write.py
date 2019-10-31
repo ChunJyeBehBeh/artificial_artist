@@ -22,7 +22,7 @@ Beh: check the best H_draw for the workspace
 # Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/untitled.png"
+filename = "Image/prof_low.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -101,7 +101,7 @@ class Dynamixel():
         self.DXL_ID_2 = 2  # Dynamixel ID : 2
         self.DXL_ID_3 = 3  # Dynamixel ID : 3
         self.BAUDRATE = 1000000  # Dynamixel default baudrate : 57600
-        self.DEVICENAME = "/dev/ttyUSB0"  
+        self.DEVICENAME = "COM3"  
         # Check which port is being used on your controller
         # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 
@@ -553,6 +553,8 @@ if __name__ == '__main__':
                 arr = skip(arr,drawer.h_move,drawer.h_draw)
                 print("After F Number of point to IK: {}".format(len(arr)))
                 arr=np.asarray(arr)
+                # from i =250, change here!!!
+                arr=arr[250:]
                 offset_y , offset_x = plot(arr,False,False)
 
             else:
@@ -582,8 +584,6 @@ if __name__ == '__main__':
                 if not testing:
                     # Drawing from input image
                     print("Start sending the point")
-                    offset_x = 10
-                    offset_y = 15
                     x_coor = int(i[0])+ offset_x
                     y_coor = int(i[1])-offset_y
                     print("From Drawing for point {}/{}:".format(index+1,size_arr),i[0]+10-4, i[1]-15,i[2])

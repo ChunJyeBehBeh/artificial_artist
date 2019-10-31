@@ -190,12 +190,12 @@ def main():
     H_move = 6
     H_draw = -1.7
     # filename = "Image/image.png"
-    filename = "Image/untitled.png"
+    filename = "Image/prof_low.png"
     drawer = Drawer(filename, H_draw,H_move,True)
     drawer.findPath()
     arr = drawer.draw()
     arr=np.asarray(arr)         # <type 'numpy.ndarray'>
-
+    
     # Factor x coordinate & y coordinate
     for i in arr:
         i[0] = i[0]*0.05
@@ -209,6 +209,7 @@ def main():
     arr = skip(arr,drawer.h_move,drawer.h_draw)
     # print(arr)
     arr=np.asarray(arr)
+    # arr = arr[278:]
     print("After F Number of point to IK: {}".format(len(arr)))
 
     '''
@@ -227,7 +228,7 @@ def main():
     #             [min_X,max_Y,H_move]]
     # arr=np.asarray(arr)
 
-    plot(arr,True,True)         # set True to plot 2D graph
+    plot(arr,True,False)         # set True to plot 2D graph
     
 
 if __name__ == "__main__":
