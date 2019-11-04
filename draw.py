@@ -214,7 +214,7 @@ def main():
     H_move = 8.0
     H_draw = 1.3
     # filename = "Image/untitled.png"
-    filename = "Image/prof_low_actual.jpeg"
+    filename = "Image/prof_low_actual.png"
     drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
     arr = drawer.draw()
@@ -228,9 +228,10 @@ def main():
     arr = np.round(arr,1)
 
     arr = arr.tolist()
-    
     arr = skip(arr,drawer.h_move,drawer.h_draw)
     arr=np.asarray(arr)
+    # arr = arr[200:]
+
     print("After F Number of point to IK: {}".format(len(arr)))
     
     '''

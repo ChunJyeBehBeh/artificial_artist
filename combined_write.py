@@ -26,13 +26,13 @@ Beh: check the best H_draw for the workspace
 # Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
 H_draw = 1.3                   # variable + offset ->> -2.3+4
-filename = "Image/love_mae.png"
+filename = "Image/prof_low_actual.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
 
 # Program Parameters for Dynamixel Servos
-print_param = True          # printing status of Dynamixel Servos
+print_param = False          # printing status of Dynamixel Servos
 testing = False
 min_X = 9
 max_X = 35
@@ -338,7 +338,7 @@ class Dynamixel():
         elif dxl_error != 0:
             return self.set_joint_speed(id, speed)
         else:
-            print("Dynamixel#%d speed has been set: %s" % (id, speed))
+            # print("Dynamixel#%d speed has been set: %s" % (id, speed))
             return 1
 
     def enable_servo_torque(self, id):
@@ -384,7 +384,7 @@ def move_to(status_moving):
         GoalPosition_3)), DXL_LOBYTE(DXL_HIWORD(GoalPosition_3)), DXL_HIBYTE(DXL_HIWORD(GoalPosition_3))]
     
     if status_moving:
-        print("one by one")
+        # print("one by one")
         servo.goal_send(servo.DXL_ID_6, GoalPosition_6)
         servo.goal_send(servo.DXL_ID_3, GoalPosition_3)
         servo.goal_send(servo.DXL_ID_1, GoalPosition_1)
@@ -406,7 +406,7 @@ def move_to(status_moving):
         servo.groupSyncWrite.clearParam()
 
     wait = time.time()
-    print("Time: {}".format(wait))
+    # print("Time: {}".format(wait))
 
     while 1:
         # Read present position
@@ -429,8 +429,6 @@ def move_to(status_moving):
 
         status_6 = (abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD)
         print("--Servo 6 Status: {}--".format(status_6))
-        print(GoalPosition_6)
-        print(dxl_present_position_6)
         
         if ((abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
                 (abs(GoalPosition_1 - dxl_present_position_1) <= servo.DXL_MOVING_STATUS_THRESHOLD) and \
@@ -454,27 +452,27 @@ def set_variable_speed():
     diff6 = abs(GoalPosition_6-dxl6_present_position)
 
     reduct = 1
-    print("Angle difference is %s and reduction value is %s" %([diff1,diff2,diff3,diff6],reduct))
+    # print("Angle difference is %s and reduction value is %s" %([diff1,diff2,diff3,diff6],reduct))
     if diff1 > 100:
-        print("apply speed limit 1")
+        # print("apply speed limit 1")
         diff2 = diff2 * reduct * 100/diff1
         diff3 = diff3 * reduct * 100/diff1
         diff6 = diff6 * reduct * 100/diff1
         diff1 = diff1 * reduct * 100/diff1
     if diff2 > 100:
-        print("apply speed limit 2")
+        # print("apply speed limit 2")
         diff1 = diff1 * reduct * 100/diff2
         diff3 = diff3 * reduct * 100/diff2
         diff6 = diff6 * reduct * 100/diff2
         diff2 = diff2 * reduct * 100/diff2
     if diff3 > 100:
-        print("apply speed limit 3")
+        # print("apply speed limit 3")
         diff1 = diff1 * reduct * 100/diff3
         diff2 = diff2 * reduct * 100/diff3
         diff6 = diff6 * reduct * 100/diff3
         diff3 = diff3 * reduct * 100/diff3
     if diff6 > 100:
-        print("apply speed limit 4")
+        # print("apply speed limit 4")
         diff1 = diff1 * reduct * 100/diff6
         diff2 = diff2 * reduct * 100/diff6
         diff3 = diff3 * reduct * 100/diff6
@@ -545,7 +543,6 @@ if __name__ == '__main__':
                 # Drawing from input image
                 arr = drawer.draw()
 
-                # Bug!!!
                 print("Number of point to IK: {}".format(len(arr)))
                 arr=np.asarray(arr)
 
@@ -561,11 +558,11 @@ if __name__ == '__main__':
                 print("After F Number of point to IK: {}".format(len(arr)))
                 arr=np.asarray(arr)
 
-                # Bug!!!
-                # Array slicing here!!! 
-                # arr=arr[63:]
-                
                 offset_y , offset_x = plot(arr,False,False)
+
+                # Array slicing here!!! 
+                # arr=arr[200:]
+                
             
             else:
                 print("Testing")
@@ -585,8 +582,9 @@ if __name__ == '__main__':
                     status_move = True
                 else:
                     status_move = False
-                    
-                print("Status_move :{}".format(status_move))
+
+                if print_param:    
+                    print("Status_move :{}".format(status_move))
 
                 if not testing:
                     # Drawing from input image
@@ -611,7 +609,7 @@ if __name__ == '__main__':
 
                 arr[3] = -arr[3]
                 arr = [i + 150.0 for i in arr]
-                print("From IK(after +150): ",arr)
+                # print("From IK(after +150): ",arr)
                 
                 GoalPosition_3_deg, GoalPosition_3 = program_input(arr[0])
                 GoalPosition_6_deg, GoalPosition_6 = program_input(arr[1])
@@ -632,7 +630,7 @@ if __name__ == '__main__':
                 '''
                 Beh!!: check the min duration between two points (power suppy)
                 '''
-                time.sleep(1.0)
+                # time.sleep(1.0)
             break
 
     print("Finished")
