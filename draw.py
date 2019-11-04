@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from skip import skip
 
+
 '''
 Canny Edge Detector: http://bigwww.epfl.ch/demo/ip/demos/edgeDetector/
 Invert the color: https://pinetools.com/invert-image-colors
@@ -45,29 +46,33 @@ class Drawer(object):
         self.h_draw = h_draw
         self.h_move = h_move
         self.display = display
+
         # Read image from path in grayscale
         self.arr = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        (h, w) = self.arr.shape[:2]
-       
-        (cX, cY) = (w / 2, h / 2)
 
-        # grab the rotation matrix (applying the negative of the
-        # angle to rotate clockwise), then grab the sine and cosine
-        # (i.e., the rotation components of the matrix)
-        M = cv2.getRotationMatrix2D((cX, cY), 90, 1.0)
-        cos = np.abs(M[0, 0])
-        sin = np.abs(M[0, 1])
-        
-        # compute the new bounding dimensions of the image
-        nW = int((h * sin) + (w * cos))
-        nH = int((h * cos) + (w * sin))
+        #flipimage
+        self.arr = cv2.flip(self.arr, 1)
 
-        # adjust the rotation matrix to take into account translation
-        M[0, 2] += (nW / 2) - cX
-        M[1, 2] += (nH / 2) - cY
+        # (h, w) = self.arr.shape[:2]
+        # (cX, cY) = (w / 2, h / 2)
+
+        # # grab the rotation matrix (applying the negative of the
+        # # angle to rotate clockwise), then grab the sine and cosine
+        # # (i.e., the rotation components of the matrix)
+        # M = cv2.getRotationMatrix2D((cX, cY), 90, 1.0)
+        # cos = np.abs(M[0, 0])
+        # sin = np.abs(M[0, 1])
         
-        # perform the actual rotation and return the image
-        self.arr = cv2.warpAffine(self.arr, M, (nW, nH))
+        # # compute the new bounding dimensions of the image
+        # nW = int((h * sin) + (w * cos))
+        # nH = int((h * cos) + (w * sin))
+
+        # # adjust the rotation matrix to take into account translation
+        # M[0, 2] += (nW / 2) - cX
+        # M[1, 2] += (nH / 2) - cY
+        
+        # # perform the actual rotation and return the image
+        # self.arr = cv2.warpAffine(self.arr, M, (nW, nH))
 
         # Convert gray pixels into black
         self.arr[self.arr < 150] = 0
@@ -143,7 +148,7 @@ class Drawer(object):
                 if key == 27: # If ESC is pressed, exit loop
                     cv2.destroyAllWindows()
                     break
-            cv2.imwrite("output.jpg",self.arr)
+            cv2.imwrite("output.png",self.arr)
         return self.path 
         
 def plot(arr,plot,plot_2D):
@@ -167,14 +172,33 @@ def plot(arr,plot,plot_2D):
     min_y = min(y)
     max_x = max(x)
     min_x = min(x)
+    offset_x = (max_x+min_x)/2
+    offset_y = (max_y+min_y)/2
     print("In x-axis, Max: {} Min: {} Offset: {}.".format(max_x,min_x,(max_x+min_x)/2))
     print("In y-axis, Max: {} Min: {} Offset: {}.".format(max_y,min_y,(max_y+min_y)/2))
     
+    """
+    Adjust offset_x and offset_y to make sure x in between 12 & 30 and y in between -15 & 15
+    """
+    counter = 0
+    adjust_offset = True
+    while(adjust_offset):
+        if(min_x+offset_x < 13 or max_x+offset_x > 35 or min_y-offset_y<-15 or max_y-offset_y>15):
+            print("Exceed the Drawing Workspace. Please RESIZE the input image.")
+        else:
+            print("New offset_x after adjustment: {}.".format(offset_x))
+            break
+        offset_x+=1
+        counter+=1 
+        adjust_offset = (counter<=10)
+
+        if(counter==11):
+            print("Auto adjust Fail. Exit the code. Please set the counter to a higher value or check the offset_y.")
+
     if plot:
         if two_D_plot:
             plt.title('Output Points forom Drawing')
-            plt.scatter([i-(max_y+min_y)/2 for i in y], [i+(max_x+min_x)/2 for i in x])
-            # plt.scatter(y, x)
+            plt.scatter([i-offset_y for i in y],[i+offset_x for i in x])
         else:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -183,17 +207,18 @@ def plot(arr,plot,plot_2D):
             ax.scatter(arr[-1,1],arr[-1,0],arr[-1,2],marker="x")    # Ending Point
         plt.show()
 
-    return (max_y+min_y)/2,(max_x+min_x)/2
+    return offset_y,offset_x
 
 
 def main():
-    H_move = 6
-    H_draw = -1.7
-    # filename = "Image/image.png"
-    filename = "Image/prof_low.png"
-    drawer = Drawer(filename, H_draw,H_move,True)
+    H_move = 8.0
+    H_draw = 1.3
+    # filename = "Image/untitled.png"
+    filename = "Image/prof_low_actual.jpeg"
+    drawer = Drawer(filename, H_draw,H_move,False)
     drawer.findPath()
     arr = drawer.draw()
+    print("Number of point to IK: {}".format(len(arr)))
     arr=np.asarray(arr)         # <type 'numpy.ndarray'>
     
     # Factor x coordinate & y coordinate
@@ -202,16 +227,12 @@ def main():
         i[1] = i[1]*0.05
     arr = np.round(arr,1)
 
-    print("Number of point to IK: {}".format(len(arr)))
-
     arr = arr.tolist()
     
     arr = skip(arr,drawer.h_move,drawer.h_draw)
-    # print(arr)
     arr=np.asarray(arr)
-    # arr = arr[278:]
     print("After F Number of point to IK: {}".format(len(arr)))
-
+    
     '''
     Workspace Region
     '''

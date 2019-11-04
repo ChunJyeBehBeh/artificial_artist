@@ -15,14 +15,18 @@ from dynamixel_sdk import *  # Uses Dynamixel SDK library
 from skip import skip
 from play_sound import *
 
+# Ready to remove
+import sys
+sys.setrecursionlimit(10000)
+
 # Parameters for Program Drawing
 '''
 Beh: check the best H_draw for the workspace
 '''
 # Pen length = 4.5cm
 H_move = 8.0                   # variable + offset ->> 2+4
-H_draw = 2.1                   # variable + offset ->> -2.3+4
-filename = "Image/prof_low.png"
+H_draw = 1.3                   # variable + offset ->> -2.3+4
+filename = "Image/love_mae.png"
 
 drawer = Drawer(filename,H_draw,H_move,False)
 drawer.findPath()
@@ -101,7 +105,7 @@ class Dynamixel():
         self.DXL_ID_2 = 2  # Dynamixel ID : 2
         self.DXL_ID_3 = 3  # Dynamixel ID : 3
         self.BAUDRATE = 1000000  # Dynamixel default baudrate : 57600
-        self.DEVICENAME = "COM3"  
+        self.DEVICENAME = "/dev/ttyUSB0"  
         # Check which port is being used on your controller
         # ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
 
@@ -424,7 +428,7 @@ def move_to(status_moving):
             servo.print_status(servo.DXL_ID_1, GoalPosition_1_deg, dxl_present_position_1_deg)
 
         status_6 = (abs(GoalPosition_6 - dxl_present_position_6) <= servo.DXL_MOVING_STATUS_THRESHOLD)
-        print(" Servo 6 Status: {}".format(status_6))
+        print("--Servo 6 Status: {}--".format(status_6))
         print(GoalPosition_6)
         print(dxl_present_position_6)
         
@@ -520,6 +524,7 @@ if __name__ == '__main__':
     GoalPosition_3_deg, GoalPosition_3=program_input(150)
     GoalPosition_1 = GoalPosition_6 = GoalPosition_2 = GoalPosition_3
     GoalPosition_1_deg = GoalPosition_6_deg = GoalPosition_2_deg = GoalPosition_3_deg
+    set_variable_speed()        # -> test
     move_to(True)
 
     while 1:
@@ -539,6 +544,8 @@ if __name__ == '__main__':
                 print("Start drawing")
                 # Drawing from input image
                 arr = drawer.draw()
+
+                # Bug!!!
                 print("Number of point to IK: {}".format(len(arr)))
                 arr=np.asarray(arr)
 
@@ -553,10 +560,13 @@ if __name__ == '__main__':
                 arr = skip(arr,drawer.h_move,drawer.h_draw)
                 print("After F Number of point to IK: {}".format(len(arr)))
                 arr=np.asarray(arr)
-                # from i =250, change here!!!
-                arr=arr[250:]
-                offset_y , offset_x = plot(arr,False,False)
 
+                # Bug!!!
+                # Array slicing here!!! 
+                # arr=arr[63:]
+                
+                offset_y , offset_x = plot(arr,False,False)
+            
             else:
                 print("Testing")
                 arr = [[min_X,max_Y,H_move],
@@ -571,9 +581,6 @@ if __name__ == '__main__':
             arr_store = arr  
 
             for index, i in enumerate(arr):
-                '''
-                Beh: Update this offset
-                '''
                 if(int(i[2])==int(H_move) or int(arr_store[index-1][2])==int(H_move)):
                     status_move = True
                 else:
@@ -584,8 +591,10 @@ if __name__ == '__main__':
                 if not testing:
                     # Drawing from input image
                     print("Start sending the point")
-                    x_coor = int(i[0])+ offset_x
-                    y_coor = int(i[1])-offset_y
+                    # x_coor = int(i[0])+ offset_x
+                    # y_coor = int(i[1])-offset_y
+                    y_coor = int(i[0])-offset_y
+                    x_coor = int(i[1])+offset_x
                     print("From Drawing for point {}/{}:".format(index+1,size_arr),i[0]+10-4, i[1]-15,i[2])
                     arr = ik.get_inverse(i[1]+offset_x, i[0]-offset_y,i[2])         
 
@@ -621,14 +630,24 @@ if __name__ == '__main__':
 
                 print("--- Wait ---")
                 '''
-                Beh: check the min duration between two points (power suppy)
+                Beh!!: check the min duration between two points (power suppy)
                 '''
                 time.sleep(1.0)
             break
 
     print("Finished")
     play_sound()
+
+    # Go to home position 
+    GoalPosition_3_deg, GoalPosition_3=program_input(150)
+    GoalPosition_1 = GoalPosition_6 = GoalPosition_2 = GoalPosition_3
+    GoalPosition_1_deg = GoalPosition_6_deg = GoalPosition_2_deg = GoalPosition_3_deg
+    set_variable_speed()       
+    move_to(True)
     
+    while(True):
+        continue
+
     # Disable Dynamixel Torque
     servo.disable_servo_torque(servo.DXL_ID_6)
     servo.disable_servo_torque(servo.DXL_ID_1)
